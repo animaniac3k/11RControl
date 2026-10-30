@@ -1,237 +1,193 @@
-:root,
-body[data-theme="orange"] {
-  --bg-dark: #0f1012;
-  --chassis-metal: #1c1d21;
-  --chassis-border: #2e3036;
-  --accent-main: #d9531e;
-  --accent-bright: #ff6a2b;
-  --accent-dim: #7a2c0d;
-  --accent-glow: rgba(255, 106, 43, 0.35);
-  --accent-badge-bg: rgba(217, 83, 30, 0.18);
-  --accent-badge-text: #ff986b;
-  --accent-badge-border: rgba(217, 83, 30, 0.45);
-  --lcd-bg-top: #ff9d2e;
-  --lcd-bg-bot: #e06d10;
-  --lcd-glow: rgba(255, 136, 0, 0.35);
-  --lcd-ink: #1a0c02;
-  --lcd-ink-muted: rgba(26, 12, 2, 0.65);
-  --led-main: #ffae00;
-  --led-green: #2ee656;
-  --led-red: #ff3b30;
-  --text-light: #e6e8ec;
-  --text-muted: #9398a3;
-  --card-bg: #17181c;
+/* =========================================================
+   Avid Eleven Rack — Live Performance Board Styles
+   Clean, Unified Single-Screen Layout
+   ========================================================= */
+
+:root {
+  --bg-app: #0e0f12;
+  --bg-panel: #16171b;
+  --bg-card: #1c1d22;
+  --bg-card-header: #22242a;
+  --border-dim: #2b2e37;
+  --border-bright: #3f434f;
+  
+  /* Text */
+  --text-main: #f0f2f5;
+  --text-muted: #8b909d;
+  --text-dim: #5c616e;
+  
+  /* Dynamic Palette Themes */
+  --accent-main: #f57c00;
+  --accent-glow: rgba(245, 124, 0, 0.45);
+  --accent-bright: #ff9800;
+  --accent-soft: rgba(245, 124, 0, 0.15);
+  
+  --led-green: #39e75f;
+  --led-red: #ff3344;
+  --led-amber: #ffaa00;
 }
 
 body[data-theme="blue"] {
-  --accent-main: #1b6ec2;
-  --accent-bright: #2ea3ff;
-  --accent-dim: #0d3863;
-  --accent-glow: rgba(46, 163, 255, 0.38);
-  --accent-badge-bg: rgba(27, 110, 194, 0.22);
-  --accent-badge-text: #7cc4ff;
-  --accent-badge-border: rgba(46, 163, 255, 0.45);
-  --lcd-bg-top: #45caff;
-  --lcd-bg-bot: #1985d2;
-  --lcd-glow: rgba(46, 180, 255, 0.35);
-  --lcd-ink: #041421;
-  --lcd-ink-muted: rgba(4, 20, 33, 0.65);
-  --led-main: #00d9ff;
+  --accent-main: #0288d1;
+  --accent-glow: rgba(2, 136, 209, 0.45);
+  --accent-bright: #03a9f4;
+  --accent-soft: rgba(2, 136, 209, 0.15);
 }
 
 body[data-theme="green"] {
-  --accent-main: #1f9d55;
-  --accent-bright: #2ee675;
-  --accent-dim: #0e4f2a;
-  --accent-glow: rgba(46, 230, 117, 0.35);
-  --accent-badge-bg: rgba(31, 157, 85, 0.22);
-  --accent-badge-text: #74f5a5;
-  --accent-badge-border: rgba(46, 230, 117, 0.45);
-  --lcd-bg-top: #65f08e;
-  --lcd-bg-bot: #22b553;
-  --lcd-glow: rgba(50, 230, 110, 0.35);
-  --lcd-ink: #051c0c;
-  --lcd-ink-muted: rgba(5, 28, 12, 0.65);
-  --led-main: #52ff86;
+  --accent-main: #2e7d32;
+  --accent-glow: rgba(76, 175, 80, 0.45);
+  --accent-bright: #4caf50;
+  --accent-soft: rgba(76, 175, 80, 0.15);
 }
 
 body[data-theme="crimson"] {
-  --accent-main: #b8252a;
-  --accent-bright: #ff3b42;
-  --accent-dim: #611114;
-  --accent-glow: rgba(255, 59, 66, 0.38);
-  --accent-badge-bg: rgba(184, 37, 42, 0.22);
-  --accent-badge-text: #ff8589;
-  --accent-badge-border: rgba(255, 59, 66, 0.45);
-  --lcd-bg-top: #ff6e54;
-  --lcd-bg-bot: #d12e1f;
-  --lcd-glow: rgba(255, 70, 50, 0.35);
-  --lcd-ink: #1f0503;
-  --lcd-ink-muted: rgba(31, 5, 3, 0.65);
-  --led-main: #ff5740;
+  --accent-main: #c62828;
+  --accent-glow: rgba(239, 83, 80, 0.45);
+  --accent-bright: #e53935;
+  --accent-soft: rgba(239, 83, 80, 0.15);
 }
 
 body[data-theme="violet"] {
-  --accent-main: #7b3fe4;
-  --accent-bright: #a36bff;
-  --accent-dim: #3d1b7a;
-  --accent-glow: rgba(163, 107, 255, 0.38);
-  --accent-badge-bg: rgba(123, 63, 228, 0.22);
-  --accent-badge-text: #c4a1ff;
-  --accent-badge-border: rgba(163, 107, 255, 0.45);
-  --lcd-bg-top: #b88cff;
-  --lcd-bg-bot: #7d4cdb;
-  --lcd-glow: rgba(163, 107, 255, 0.35);
-  --lcd-ink: #120626;
-  --lcd-ink-muted: rgba(18, 6, 38, 0.65);
-  --led-main: #c78cff;
+  --accent-main: #7b1fa2;
+  --accent-glow: rgba(171, 71, 188, 0.45);
+  --accent-bright: #ab47bc;
+  --accent-soft: rgba(171, 71, 188, 0.15);
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  user-select: none;
 }
 
 body {
-  background-color: var(--bg-dark);
-  background-image: 
-    radial-gradient(circle at 50% 10%, var(--accent-badge-bg), transparent 60%),
-    linear-gradient(180deg, #0b0c0e 0%, #141619 100%);
-  color: var(--text-light);
-  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
-  min-height: 100vh;
-  padding: 12px 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: background 0.25s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  user-select: none;
 }
 
-.app-wrapper {
-  width: 100%;
-  max-width: 1540px;
+.app-layout {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  min-height: 100vh;
+  padding: 12px 16px;
+  gap: 12px;
+  max-width: 1720px;
+  margin: 0 auto;
 }
 
 /* =========================================================
-   TOP BAR (MIDI CONNECTION, THEME & UTILITY)
+   TOP NAV / MIDI BAR
    ========================================================= */
-.top-bar {
+.top-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--card-bg);
-  border: 1px solid var(--chassis-border);
-  border-left: 4px solid var(--accent-main);
-  border-radius: 6px;
-  padding: 10px 16px;
-  flex-wrap: wrap;
-  gap: 12px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  background: var(--bg-panel);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 8px 16px;
+  gap: 14px;
 }
 
-.brand-badge {
+.brand {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
 }
 
 .brand-avid {
+  font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 2px;
-  color: #fff;
-  background: var(--accent-main);
-  padding: 2px 7px;
+  background: #2a2d36;
+  padding: 3px 6px;
   border-radius: 3px;
-  font-size: 0.8rem;
+  color: #fff;
 }
 
-.brand-eleven {
-  font-size: 1.25rem;
+.brand-name {
+  font-size: 1rem;
   font-weight: 800;
   letter-spacing: 0.5px;
-  color: #fff;
+  color: var(--accent-bright);
 }
 
-.brand-sub {
-  font-size: 0.76rem;
-  color: var(--text-muted);
+.badge-live {
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: var(--accent-soft);
+  color: var(--accent-bright);
+  border: 1px solid var(--accent-main);
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
 }
 
-.midi-config {
+.nav-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
-.config-group {
+.ctrl-group {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
-.config-group label {
+.ctrl-group label {
   font-size: 0.7rem;
   font-weight: 700;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
 }
 
-select, input[type="number"], input[type="text"] {
-  background: #0e0f12;
-  color: var(--text-light);
-  border: 1px solid #353840;
+.ctrl-group select {
+  background: #111215;
+  color: var(--text-main);
+  border: 1px solid var(--border-dim);
+  padding: 4px 8px;
   border-radius: 4px;
-  padding: 5px 8px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   outline: none;
 }
 
-select:focus, input:focus {
+.ctrl-group select:focus {
   border-color: var(--accent-bright);
 }
 
-.top-btn {
-  background: #25272e;
-  color: var(--text-light);
-  border: 1px solid #3c4049;
+.ch-group select {
+  width: 50px;
+}
+
+.pill-btn {
+  background: #252830;
+  color: var(--text-main);
+  border: 1px solid var(--border-bright);
+  padding: 4px 10px;
   border-radius: 4px;
-  padding: 6px 11px;
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.top-btn:hover {
-  background: #30333c;
-  border-color: #555a66;
-}
-
-.top-btn.accent {
-  background: var(--accent-main);
+.pill-btn:hover {
+  background: #323642;
   border-color: var(--accent-bright);
-  color: #fff;
 }
 
-.top-btn.accent:hover {
-  background: var(--accent-bright);
-}
-
-.midi-status-pill {
+.midi-status-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #101114;
-  border: 1px solid #2b2d34;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 600;
 }
 
@@ -239,8 +195,7 @@ select:focus, input:focus {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #f5a623;
-  box-shadow: 0 0 6px #f5a623;
+  background: #777;
 }
 
 .status-dot.connected {
@@ -254,219 +209,342 @@ select:focus, input:focus {
 }
 
 /* =========================================================
-   2U HARDWARE RACK UNIT CHASSIS
+   MAIN LIVE BOARD STRIPS
    ========================================================= */
-.rack-unit {
-  display: flex;
-  align-items: stretch;
-  width: 100%;
-  min-height: 345px;
-  background: linear-gradient(180deg, #27292e 0%, #16171a 50%, #1f2025 100%);
-  border: 2px solid #35383f;
-  border-radius: 8px;
-  box-shadow: 
-    0 18px 40px rgba(0, 0, 0, 0.75),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  position: relative;
-  transition: filter 0.3s ease;
-}
-
-.rack-unit.powered-off .lcd-screen,
-.rack-unit.powered-off .knob-led-ring,
-.rack-unit.powered-off .fx-led,
-.rack-unit.powered-off .hw-rect-btn {
-  filter: brightness(0.18) saturate(0);
-  pointer-events: none;
-}
-
-/* Rack Ears */
-.rack-ear {
-  width: 34px;
-  background: linear-gradient(90deg, #2b2d33 0%, #1b1c20 100%);
+.live-board {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 0;
-  border-right: 2px solid #101113;
-  flex-shrink: 0;
-}
-
-.rack-ear.right {
-  border-right: none;
-  border-left: 2px solid #101113;
-  background: linear-gradient(270deg, #2b2d33 0%, #1b1c20 100%);
-}
-
-.rack-hole {
-  width: 16px;
-  height: 22px;
-  background: #090a0c;
-  border-radius: 8px;
-  border: 2px solid #3a3d45;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.9);
-}
-
-/* Faceplate & Accent Bezel */
-.faceplate {
+  gap: 12px;
   flex: 1;
+}
+
+.board-strip {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
   padding: 12px 14px;
-  display: flex;
-  background: 
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.015) 0px,
-      rgba(255, 255, 255, 0.015) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    linear-gradient(180deg, #1d1e22 0%, #141518 100%);
 }
 
-.orange-bezel {
-  flex: 1;
-  border: 3px solid var(--accent-main);
-  border-radius: 8px;
-  box-shadow: 
-    0 0 16px var(--accent-glow),
-    inset 0 0 18px rgba(0, 0, 0, 0.8);
-  padding: 14px 16px;
-  display: grid;
-  grid-template-columns: 120px minmax(0, 1fr) 370px 84px;
-  gap: 16px;
+/* 1. RIG / BANK STRIP */
+.rig-strip {
+  display: flex;
   align-items: center;
-  min-width: 0;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
-}
-
-.panel-section {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
   justify-content: space-between;
+  gap: 14px;
 }
 
-.panel-label {
-  font-size: 0.66rem;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: #b4b8c2;
-  text-transform: uppercase;
-  text-align: center;
-}
-
-.cc-badge {
-  font-size: 0.64rem;
-  font-family: Consolas, monospace;
-  background: var(--accent-badge-bg);
-  color: var(--accent-badge-text);
-  border: 1px solid var(--accent-badge-border);
-  padding: 1px 6px;
-  border-radius: 4px;
-}
-
-/* =========================================================
-   SECTION 1: POWER & MASTER VOLUME
-   ========================================================= */
-.power-vol-section {
+.rig-info-box {
+  display: flex;
   align-items: center;
-  justify-content: space-around;
-  border-right: 1px solid #2b2d33;
-  padding-right: 10px;
+  gap: 12px;
 }
 
-.power-switch-wrap {
+.mode-badge {
+  background: var(--accent-main);
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.rig-slot-code {
+  font-size: 1.8rem;
+  font-weight: 900;
+  font-family: 'Consolas', monospace;
+  color: var(--accent-bright);
+  min-width: 48px;
+}
+
+.rig-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rig-name-field {
+  background: #111216;
+  border: 1px solid var(--border-bright);
+  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  width: 220px;
+  text-transform: uppercase;
+  outline: none;
+}
+
+.rig-name-field:focus {
+  border-color: var(--accent-bright);
+}
+
+.rig-subtext {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  font-family: 'Consolas', monospace;
+}
+
+.rig-footswitch-bank {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  max-width: 600px;
+}
+
+.rig-stomp-btn {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  background: #202228;
+  border: 1px solid var(--border-bright);
+  border-radius: 6px;
+  padding: 8px 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 54px;
+}
+
+.rig-stomp-btn:hover {
+  background: #2b2e37;
+  border-color: var(--accent-bright);
+}
+
+.rig-stomp-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.stomp-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #333;
+  margin-bottom: 4px;
+}
+
+.rig-stomp-btn.active .stomp-led {
+  background: var(--accent-bright);
+  box-shadow: 0 0 6px var(--accent-bright);
+}
+
+.stomp-code {
+  font-size: 0.95rem;
+  font-weight: 900;
+  font-family: 'Consolas', monospace;
+  color: var(--text-main);
+}
+
+.stomp-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.bank-steppers {
+  display: flex;
   gap: 6px;
 }
 
-.power-rocker {
-  width: 40px;
-  height: 64px;
-  background: #18191d;
-  border: 3px solid #353840;
-  border-radius: 5px;
-  display: flex;
-  flex-direction: column;
+.step-btn {
+  background: #22252c;
+  color: var(--text-main);
+  border: 1px solid var(--border-bright);
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
   cursor: pointer;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.6);
 }
 
-.rocker-half {
-  flex: 1;
+.step-btn:hover {
+  background: #2d313b;
+  border-color: var(--accent-bright);
+}
+
+.live-tuner-tap {
   display: flex;
+  gap: 8px;
+}
+
+.util-stomp {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4px;
+  background: #1b1d22;
+  border: 1px solid var(--border-bright);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.68rem;
   font-weight: 800;
-  font-size: 0.75rem;
-  color: #777;
+  color: var(--text-main);
+  cursor: pointer;
+  min-width: 76px;
 }
 
-.power-rocker.active .rocker-half.on {
-  background: linear-gradient(180deg, var(--accent-bright), var(--accent-dim));
-  color: #fff;
-  text-shadow: 0 0 6px #fff;
-  box-shadow: inset 0 2px 5px rgba(255,255,255,0.35);
+.util-stomp:active, .util-stomp.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-bright);
 }
 
-.power-rocker:not(.active) .rocker-half.off {
-  background: #2c2f36;
-  color: #ccc;
+.util-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #333;
 }
 
-.master-vol-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
+.util-stomp.active .util-led {
+  background: var(--led-green);
+  box-shadow: 0 0 8px var(--led-green);
 }
 
 /* =========================================================
-   ROTARY KNOBS & GLOWING LED RINGS
+   2. AMP HERO STRIP
    ========================================================= */
-.knob-container {
+.amp-hero-strip {
+  border: 2px solid var(--accent-main);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4), 0 0 14px var(--accent-glow);
+}
+
+.amp-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-dim);
+  padding-bottom: 8px;
+}
+
+.block-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.block-tag {
+  background: var(--accent-main);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 1px;
+}
+
+.block-title-row h3 {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.block-controls-row {
+  display: flex;
+  gap: 8px;
+}
+
+.bypass-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1e2026;
+  border: 1px solid var(--border-bright);
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.bypass-toggle-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-bright);
+  color: #fff;
+}
+
+.btn-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #333;
+}
+
+.bypass-toggle-btn.active .btn-led {
+  background: var(--led-green);
+  box-shadow: 0 0 6px var(--led-green);
+}
+
+/* Amp Knobs Grid */
+.amp-knobs-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.knob-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #141519;
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  padding: 10px 4px;
+  gap: 6px;
+}
+
+.knob-cell.accent-cell {
+  background: #181920;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.knob-wrap {
   position: relative;
-  width: 68px;
-  height: 68px;
+  width: 58px;
+  height: 58px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.knob-container.large-knob {
-  width: 82px;
-  height: 82px;
-}
-
-.knob-led-ring {
+.knob-ring {
   position: absolute;
   inset: 0;
   border-radius: 50%;
   background: conic-gradient(
     from 225deg,
-    var(--led-main) 0deg,
-    var(--accent-bright) var(--knob-deg, 135deg),
-    #25272c var(--knob-deg, 135deg),
-    #25272c 270deg,
+    var(--accent-bright) 0deg,
+    var(--accent-main) var(--knob-deg, 135deg),
+    #25272e var(--knob-deg, 135deg),
+    #25272e 270deg,
     transparent 270deg
   );
   mask: radial-gradient(transparent 58%, #000 60%);
   -webkit-mask: radial-gradient(transparent 58%, #000 60%);
-  filter: drop-shadow(0 0 4px var(--accent-glow));
 }
 
 .knob-body {
   width: 72%;
   height: 72%;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #3d4048, #141518 75%);
-  border: 2px solid #0b0c0e;
-  box-shadow: 
-    0 5px 10px rgba(0, 0, 0, 0.75),
-    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  background: radial-gradient(circle at 35% 30%, #3e424c, #141518 80%);
+  border: 2px solid #0d0e11;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
   position: relative;
   cursor: ns-resize;
   transform: rotate(var(--knob-rot, 0deg));
@@ -474,1250 +552,400 @@ select:focus, input:focus {
 }
 
 .knob-body:focus-visible {
-  border-color: var(--led-main);
+  border-color: var(--accent-bright);
 }
 
-.knob-cap {
+.knob-line {
   position: absolute;
-  inset: 16%;
-  border-radius: 50%;
-  background: linear-gradient(145deg, #1b1c20, #282a30);
-  border: 1px solid #383b44;
-}
-
-.knob-indicator {
-  position: absolute;
-  top: 4px;
+  top: 3px;
   left: 50%;
   transform: translateX(-50%);
-  width: 3px;
-  height: 26%;
-  background: var(--led-main);
+  width: 2.5px;
+  height: 30%;
+  background: var(--accent-bright);
   border-radius: 2px;
-  box-shadow: 0 0 5px var(--led-main);
-  z-index: 2;
+  box-shadow: 0 0 4px var(--accent-bright);
 }
 
-/* =========================================================
-   SECTION 2: CENTRAL LCD SCREEN, NAV & 6 SOFT ENCODERS
-   ========================================================= */
-.center-console-section {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 12px;
-  border-right: 1px solid #2b2d33;
-  padding-right: 14px;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.lcd-and-nav-row {
-  display: grid;
-  grid-template-columns: 94px minmax(0, 1fr) 94px;
-  gap: 12px;
-  align-items: stretch;
-  min-width: 0;
-}
-
-.nav-col {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 7px;
-}
-
-.hw-rect-btn {
-  background: linear-gradient(180deg, #2d3038 0%, #1e2026 100%);
-  border: 1px solid #454954;
-  border-radius: 4px;
-  color: #d0d4dc;
-  font-size: 0.66rem;
-  font-weight: 800;
-  padding: 8px 4px;
-  cursor: pointer;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.5);
-  transition: all 0.12s;
-}
-
-.hw-rect-btn:hover {
-  border-color: var(--accent-bright);
-  color: #fff;
-}
-
-.hw-rect-btn.lit-amber {
-  background: linear-gradient(180deg, var(--accent-dim) 0%, #1b1c20 100%);
-  border-color: var(--accent-bright);
-  color: #fff;
-  box-shadow: 0 0 8px var(--accent-glow);
-}
-
-.sw-buttons, .patch-step-btns, .bank-step-btns {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.hw-small-btn {
-  background: #23252b;
-  border: 1px solid #3b3e47;
-  color: #b8bcc6;
+.knob-title {
   font-size: 0.65rem;
-  font-weight: 700;
-  padding: 5px 4px;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.hw-small-btn:hover, .hw-small-btn.active {
-  background: var(--accent-main);
-  border-color: var(--accent-bright);
-  color: #fff;
-}
-
-.hw-small-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-/* Central Backlit LCD Screen */
-.lcd-bezel {
-  background: #0d0e10;
-  padding: 7px;
-  border-radius: 6px;
-  border: 2px solid #2e3138;
-  box-shadow: inset 0 3px 8px rgba(0,0,0,0.9);
-  display: flex;
-  min-width: 0;
-  width: 100%;
-}
-
-.lcd-screen {
-  flex: 1;
-  min-width: 0;
-  width: 100%;
-  background: linear-gradient(180deg, var(--lcd-bg-top) 0%, var(--lcd-bg-bot) 100%);
-  color: var(--lcd-ink);
-  border-radius: 4px;
-  padding: 9px 13px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 8px;
-  box-shadow: 
-    0 0 18px var(--lcd-glow),
-    inset 0 0 14px rgba(0, 0, 0, 0.35);
-  font-family: 'Consolas', 'Courier New', monospace;
-  position: relative;
-  overflow: hidden;
-  transition: background 0.25s ease, box-shadow 0.25s ease;
-}
-
-/* Subtle LCD scanline texture */
-.lcd-screen::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    rgba(0, 0, 0, 0.04) 0px,
-    rgba(0, 0, 0, 0.04) 1px,
-    transparent 1px,
-    transparent 2px
-  );
-  pointer-events: none;
-}
-
-/* Prominent Rig ID & Rig Name Banner */
-.lcd-top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.35);
-  padding-bottom: 6px;
-  gap: 10px;
-  z-index: 1;
-}
-
-.rig-patch-box {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  background: rgba(0, 0, 0, 0.12);
-  padding: 3px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.25);
-}
-
-.rig-bank-badge {
-  background: var(--lcd-ink);
-  color: var(--lcd-bg-top);
-  font-size: 0.68rem;
-  font-weight: 900;
-  padding: 2px 6px;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.rig-id {
-  font-size: 1.65rem;
-  font-weight: 900;
-  letter-spacing: -0.5px;
-  line-height: 1;
-}
-
-.rig-pc {
-  font-size: 0.7rem;
   font-weight: 800;
-  color: var(--lcd-ink-muted);
-}
-
-.rig-title-box {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.lcd-rig-name-input {
-  background: rgba(0, 0, 0, 0.14);
-  border: 1.5px solid rgba(0, 0, 0, 0.35);
-  color: var(--lcd-ink);
-  font-family: 'Consolas', monospace;
-  font-size: 1.32rem;
-  font-weight: 900;
-  letter-spacing: 0.8px;
-  text-align: center;
-  width: 100%;
-  max-width: 370px;
-  padding: 3px 10px;
-  border-radius: 4px;
-  text-transform: uppercase;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
-}
-
-.lcd-rig-name-input:focus {
-  background: rgba(255, 255, 255, 0.32);
-  border-color: var(--lcd-ink);
-}
-
-.rig-edit-hint {
-  font-size: 0.9rem;
-  opacity: 0.65;
-  cursor: help;
-}
-
-.lcd-page-pills {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  min-width: 82px;
-}
-
-.lcd-mode-pill {
-  background: var(--lcd-ink);
-  color: var(--lcd-bg-top);
-  font-size: 0.72rem;
-  font-weight: 900;
-  padding: 3px 8px;
-  border-radius: 4px;
+  color: var(--text-muted);
   letter-spacing: 0.5px;
-  width: 82px;
-  text-align: center;
 }
 
-/* LCD Signal Chain Row */
-.lcd-signal-chain {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  padding: 2px 0;
-  z-index: 1;
-}
-
-.chain-node {
-  flex: 1;
-  background: rgba(0, 0, 0, 0.14);
-  border: 1.5px solid var(--lcd-ink);
-  border-radius: 3px;
-  padding: 4px 2px;
-  text-align: center;
-  font-size: 0.68rem;
-  font-weight: 900;
-  cursor: pointer;
-  transition: all 0.1s;
-  position: relative;
-}
-
-.chain-node.active-block {
-  background: var(--lcd-ink);
-  color: var(--lcd-bg-top);
-}
-
-.chain-node.selected-focus {
-  outline: 2px solid #fff;
-  box-shadow: 0 0 6px rgba(0,0,0,0.6);
-}
-
-.chain-node.bypassed {
-  opacity: 0.52;
-  border-style: dashed;
-}
-
-/* LCD Parameter Area & Contextual Amp Selector */
-.lcd-param-area {
-  background: rgba(0, 0, 0, 0.12);
-  border: 1px solid rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
-  padding: 6px 8px;
-  z-index: 1;
-}
-
-.lcd-block-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.74rem;
-  font-weight: 900;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
-  padding-bottom: 4px;
-  margin-bottom: 5px;
-  height: 26px;
-  gap: 6px;
-  overflow: hidden;
-}
-
-.lcd-block-title-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-#lcd-active-block-title {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.lcd-amp-context-wrap {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: rgba(0, 0, 0, 0.12);
-  padding: 1px 6px;
-  border-radius: 3px;
-  flex-shrink: 0;
-}
-
-.lcd-amp-context-wrap.hidden {
-  display: none;
-}
-
-.lcd-mini-label {
-  font-size: 0.65rem;
-  font-weight: 900;
-}
-
-.lcd-select {
-  background: var(--lcd-ink);
-  color: var(--lcd-bg-top);
-  border: none;
-  font-family: 'Consolas', monospace;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.lcd-mini-btn {
-  background: var(--lcd-ink);
-  color: var(--lcd-bg-top);
-  border: 1px solid var(--lcd-ink);
-  font-family: 'Consolas', monospace;
-  font-size: 0.66rem;
-  font-weight: 900;
-  padding: 2px 6px;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.lcd-mini-btn:hover {
-  filter: invert(0.15);
-}
-
-.lcd-knobs-readout {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 6px;
-  width: 100%;
-}
-
-.lcd-knob-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(0, 0, 0, 0.09);
-  padding: 3px 4px;
-  border-radius: 3px;
-  min-width: 0;
-  overflow: hidden;
-  height: 46px;
-  justify-content: space-between;
-}
-
-.lcd-knob-cell.unused {
-  background: rgba(0, 0, 0, 0.22);
-  opacity: 0.42;
-}
-
-.lcd-param-name {
-  font-size: 0.64rem;
-  font-weight: 900;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-  text-align: center;
-}
-
-.lcd-param-bar-wrap {
-  width: 100%;
-  height: 6px;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 2px;
-  margin: 3px 0;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.lcd-param-bar-fill {
-  height: 100%;
-  background: var(--lcd-ink);
-  width: 50%;
-}
-
-.lcd-param-val {
-  font-size: 0.72rem;
-  font-weight: 900;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
-.encoder-slot-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #cfd3dc;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-  height: 16px;
-}
-
-/* Scroll Wheel */
-.scroll-wheel-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.scroll-wheel {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #3d4048, #141518);
-  border: 3px solid #454954;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: ns-resize;
-}
-
-.wheel-grooves {
-  width: 70%;
-  height: 70%;
-  border-radius: 50%;
-  border: 2px dashed #686d7a;
-}
-
-/* 6 Encoders Row Underneath Screen */
-.six-encoders-row {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
-  padding: 0 94px;
-  width: 100%;
-}
-
-.encoder-slot {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-  width: 100%;
-}
-
-.encoder-slot .cc-badge {
-  width: 52px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-
-.encoder-slot.unused-slot {
-  opacity: 0.25;
-  filter: grayscale(1) brightness(0.6);
-  pointer-events: none;
-}
-
-/* =========================================================
-   SECTION 3: EFFECTS CONTROL BUTTONS (RIGHT SIDE)
-   ========================================================= */
-.fx-controls-section {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 8px;
-  border-right: 1px solid #2b2d33;
-  padding-right: 14px;
-}
-
-.section-header-Row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-bottom: 1px solid #2e3138;
-  padding-bottom: 4px;
-}
-
-.eleven-logo-mark {
-  background: var(--accent-main);
-  color: #fff;
-  font-weight: 900;
-  font-size: 0.78rem;
-  padding: 2px 6px;
-  border-radius: 3px;
-}
-
-.section-title-text {
+.knob-readout {
   font-size: 0.75rem;
+  font-family: 'Consolas', monospace;
   font-weight: 800;
-  letter-spacing: 1px;
-  color: #d0d4dc;
-}
-
-.fx-buttons-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.fx-btn-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-}
-
-.hw-fx-btn {
-  width: 100%;
-  height: 48px;
-  background: linear-gradient(180deg, #2b2e35 0%, #1b1d22 100%);
-  border: 1.5px solid #40444f;
-  border-radius: 5px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  cursor: pointer;
-  box-shadow: 0 3px 6px rgba(0,0,0,0.6);
-  transition: all 0.12s ease;
-}
-
-.hw-fx-btn:hover {
-  border-color: #777d8c;
-}
-
-.fx-led {
-  width: 18px;
-  height: 5px;
-  border-radius: 3px;
-  background: #2f323a;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.8);
-  transition: all 0.12s;
-}
-
-.fx-name {
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: #b8bcc6;
-  letter-spacing: 0.5px;
-}
-
-.hw-fx-btn.active {
-  background: linear-gradient(180deg, var(--accent-dim) 0%, #17181c 100%);
-  border-color: var(--accent-bright);
-  box-shadow: 0 0 10px var(--accent-glow);
-}
-
-.hw-fx-btn.active .fx-led {
-  background: var(--led-main);
-  box-shadow: 0 0 8px var(--led-main), 0 0 14px var(--accent-bright);
-}
-
-.hw-fx-btn.active .fx-name {
-  color: #fff;
-}
-
-.fx-cc-sub {
-  font-size: 0.62rem;
-  font-family: Consolas, monospace;
-  color: var(--text-muted);
-}
-
-.hw-hint-bar {
-  font-size: 0.67rem;
-  color: var(--text-muted);
-  background: rgba(0, 0, 0, 0.25);
-  padding: 5px 8px;
-  border-radius: 4px;
-  border-left: 2px solid var(--accent-main);
-}
-
-/* =========================================================
-   SECTION 4: HARDWARE JACK SOCKETS (FAR RIGHT)
-   ========================================================= */
-.jacks-section {
-  align-items: center;
-  justify-content: space-around;
-}
-
-.jack-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-}
-
-.hw-jack-socket {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #4b4f59, #1f2126);
-  border: 2px solid #101114;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.7);
-}
-
-.jack-nut {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #2b2d34;
-  border: 2px solid #686d7a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.jack-hole {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #060708;
-  box-shadow: inset 0 2px 5px rgba(0,0,0,1);
-}
-
-/* =========================================================
-   BOTTOM UTILITY DECK (PEDALS, RIG SWITCHER, MIDI MONITOR)
-   ========================================================= */
-.bottom-deck {
-  display: grid;
-  grid-template-columns: 390px 1fr 390px;
-  gap: 16px;
-}
-
-.deck-card {
-  background: var(--card-bg);
-  border: 1px solid var(--chassis-border);
-  border-radius: 6px;
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 10px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.4);
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #282a30;
-  padding-bottom: 6px;
-}
-
-.card-header h3 {
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.8px;
   color: var(--accent-bright);
 }
 
-.card-subtitle {
+/* =========================================================
+   3. FX MODULES PANORAMA
+   ========================================================= */
+.fx-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.fx-module {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fx-module.fxloop-mod {
+  grid-column: span 1;
+}
+
+.module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-dim);
+  padding-bottom: 6px;
+}
+
+.module-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.module-tag {
+  background: #2c2f38;
+  color: var(--text-main);
+  font-size: 0.62rem;
+  font-weight: 900;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+.module-title h4 {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.module-bypass-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #16171b;
+  border: 1px solid var(--border-bright);
+  border-radius: 4px;
+  padding: 3px 8px;
   font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.module-bypass-btn.active {
+  background: var(--accent-soft);
+  border-color: var(--accent-bright);
+  color: #fff;
+}
+
+.module-bypass-btn.active .btn-led {
+  background: var(--led-green);
+  box-shadow: 0 0 6px var(--led-green);
+}
+
+.module-knobs {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 6px;
+}
+
+.module-knob {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.sm-knob-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sm-knob-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 225deg,
+    var(--accent-bright) 0deg,
+    var(--accent-main) var(--knob-deg, 135deg),
+    #25272e var(--knob-deg, 135deg),
+    #25272e 270deg,
+    transparent 270deg
+  );
+  mask: radial-gradient(transparent 58%, #000 60%);
+  -webkit-mask: radial-gradient(transparent 58%, #000 60%);
+}
+
+.sm-knob-body {
+  width: 72%;
+  height: 72%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #3e424c, #141518 80%);
+  border: 1.5px solid #0d0e11;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.7);
+  position: relative;
+  cursor: ns-resize;
+  transform: rotate(var(--knob-rot, 0deg));
+  outline: none;
+}
+
+.sm-knob-body:focus-visible {
+  border-color: var(--accent-bright);
+}
+
+.sm-knob-line {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 30%;
+  background: var(--accent-bright);
+  border-radius: 2px;
+}
+
+.sm-knob-title {
+  font-size: 0.6rem;
+  font-weight: 800;
   color: var(--text-muted);
 }
 
-/* Expression Pedals (With Proportional Illumination when Engaged!) */
-.pedals-row {
+.sm-knob-val {
+  font-size: 0.66rem;
+  font-family: 'Consolas', monospace;
+  font-weight: 800;
+  color: var(--accent-bright);
+}
+
+/* =========================================================
+   4. BOTTOM FLOOR: PEDALS & MIDI LOG
+   ========================================================= */
+.bottom-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.pedals-deck, .midi-monitor-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.deck-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-dim);
+  padding-bottom: 6px;
+}
+
+.deck-title {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--accent-bright);
+  letter-spacing: 0.5px;
+}
+
+.deck-sub {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+}
+
+.pedals-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  height: 150px;
 }
 
-.pedal-unit {
-  background: #111216;
-  border: 1.5px solid #282b33;
+.pedal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
   border-radius: 6px;
   padding: 8px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  min-width: 0;
-  overflow: hidden;
-  transition: border-color 0.15s ease, box-shadow 0.1s ease;
+  gap: 6px;
 }
 
-/* Illuminated Wah Pedal when engaged — scales dynamically with --wah-intensity (0..1) */
-.pedal-unit.wah-engaged {
+.pedal-card.wah-on {
   border-color: var(--accent-bright);
-  box-shadow: 
-    0 0 calc(6px + var(--wah-intensity, 0.25) * 18px) var(--accent-glow),
-    inset 0 0 calc(4px + var(--wah-intensity, 0.25) * 14px) var(--accent-badge-bg);
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 
-.pedal-header {
-  width: 100%;
-  height: 20px;
+.pedal-top {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
+  justify-content: space-between;
 }
 
-.pedal-title-wrap {
+.pedal-toe-btn {
   display: flex;
   align-items: center;
   gap: 5px;
-  min-width: 0;
-}
-
-.pedal-power-led {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #2f323b;
-  border: 1px solid #111;
+  background: #141519;
+  border: 1px solid var(--border-bright);
+  border-radius: 4px;
+  padding: 3px 6px;
   cursor: pointer;
-  flex-shrink: 0;
-  transition: all 0.15s ease;
 }
 
-.pedal-power-led.on,
-.pedal-unit.wah-engaged .pedal-power-led {
-  background: var(--led-main);
-  box-shadow: 0 0 8px var(--led-main), 0 0 12px var(--accent-bright);
+.pedal-card.wah-on .pedal-toe-btn {
+  border-color: var(--accent-bright);
 }
 
-.pedal-title {
+.toe-led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #333;
+}
+
+.toe-led.on, .pedal-card.wah-on .toe-led {
+  background: var(--led-green);
+  box-shadow: 0 0 6px var(--led-green);
+}
+
+.toe-title {
   font-size: 0.65rem;
   font-weight: 800;
-  color: #9ea4b0;
-  white-space: nowrap;
+  color: var(--text-main);
 }
 
-.pedal-unit.wah-engaged .pedal-title {
-  color: #fff;
-  text-shadow: 0 0 6px var(--accent-glow);
+.pedal-pct {
+  font-size: 0.7rem;
+  font-family: 'Consolas', monospace;
+  font-weight: 800;
+  color: var(--accent-bright);
 }
 
-.pedal-body {
+.pedal-treadle-area {
   position: relative;
-  width: 100%;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 6px;
+  height: 80px;
+  background: #111215;
+  border: 1px solid #23252c;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: ns-resize;
+  user-select: none;
 }
 
-.pedal-slider {
-  width: 100%;
-  height: 100%;
-  opacity: 0;
+.treadle-visual {
   position: absolute;
   inset: 0;
-  cursor: ns-resize;
-  z-index: 3;
-}
-
-.pedal-treadle {
-  width: 70px;
-  height: 98px;
-  background: linear-gradient(180deg, #2d3038 0%, #191a1f 100%);
-  border: 2px solid #454954;
-  border-radius: 6px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.65);
-  position: relative;
-  overflow: hidden;
-  transition: border-color 0.15s ease, box-shadow 0.1s ease;
-}
-
-.pedal-unit.wah-engaged .pedal-treadle {
-  border-color: var(--led-main);
-  box-shadow: 0 0 calc(4px + var(--wah-intensity, 0.25) * 16px) var(--accent-glow);
-}
-
-/* Proportional Bottom-Up Glow Bar inside Treadle */
-.treadle-fill-glow {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: var(--pedal-pct, 0%);
-  background: linear-gradient(0deg, var(--accent-main) 0%, var(--led-main) 100%);
-  opacity: 0;
+  justify-content: flex-end;
   pointer-events: none;
-  z-index: 1;
-  transition: opacity 0.15s ease;
 }
 
-.pedal-unit.wah-engaged .treadle-fill-glow {
-  opacity: calc(0.18 + var(--wah-intensity, 0) * 0.48);
-  box-shadow: 0 0 12px var(--led-main);
-}
-
-.pedal-unit.active-pedal .treadle-fill-glow {
-  opacity: 0.16;
-}
-
-.treadle-toe-led {
-  width: 24px;
-  height: 4px;
-  border-radius: 2px;
-  background: #282a30;
-  margin-bottom: 3px;
-  position: relative;
-  z-index: 2;
-  transition: all 0.12s ease;
-}
-
-.pedal-unit.wah-engaged .treadle-toe-led {
-  background: var(--led-main);
-  opacity: calc(0.35 + var(--wah-intensity, 0) * 0.65);
-  box-shadow: 0 0 calc(4px + var(--wah-intensity, 0) * 10px) var(--led-main);
-}
-
-.treadle-grip {
+.treadle-glow {
   width: 100%;
-  flex: 1;
+  height: var(--pedal-pct, 0%);
+  background: linear-gradient(0deg, var(--accent-main), var(--accent-bright));
+  opacity: 0.35;
+  transition: height 0.05s ease;
+}
+
+.pedal-card.wah-on .treadle-glow {
+  opacity: 0.65;
+}
+
+.treadle-tread {
+  position: absolute;
+  inset: 0;
   background: repeating-linear-gradient(
     0deg,
-    rgba(20, 21, 24, 0.85) 0px,
-    rgba(20, 21, 24, 0.85) 3px,
-    rgba(38, 40, 47, 0.75) 3px,
-    rgba(38, 40, 47, 0.75) 6px
+    rgba(255, 255, 255, 0.03) 0px,
+    rgba(255, 255, 255, 0.03) 3px,
+    transparent 3px,
+    transparent 6px
   );
-  border-radius: 3px;
-  position: relative;
-  z-index: 2;
 }
 
-.pedal-val-readout {
-  font-size: 0.7rem;
-  font-family: Consolas, monospace;
-  font-weight: 800;
-  color: var(--led-main);
-  margin-top: 4px;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  position: relative;
-  z-index: 2;
-}
-
-/* Rig / Patch Switcher Card */
-.bank-selector-controls {
+/* MIDI Log Deck */
+.monitor-actions {
   display: flex;
-  align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
 }
 
-.mini-toggle {
-  background: #23252c;
-  border: 1px solid #3a3e47;
+.micro-btn {
+  background: #252830;
   color: var(--text-muted);
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 0.72rem;
+  border: 1px solid var(--border-bright);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.65rem;
   font-weight: 700;
   cursor: pointer;
 }
 
-.mini-toggle.active, .mini-toggle.accent {
-  background: var(--accent-main);
-  border-color: var(--accent-bright);
+.micro-btn:hover {
+  background: #323642;
   color: #fff;
 }
 
-.footswitch-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin: 4px 0;
-}
-
-.rig-stomp-btn {
-  background: linear-gradient(180deg, #262830 0%, #181a1f 100%);
-  border: 2px solid #383b44;
-  border-radius: 6px;
-  padding: 10px 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  min-width: 0;
-  overflow: hidden;
-  transition: all 0.12s;
-}
-
-.rig-stomp-btn:hover {
-  border-color: #636875;
-}
-
-.stomp-led {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: #2b2d35;
-  border: 1px solid #111;
-}
-
-.rig-stomp-btn.active {
-  border-color: var(--accent-bright);
-  background: linear-gradient(180deg, var(--accent-dim) 0%, #16181d 100%);
-  box-shadow: 0 0 12px var(--accent-glow);
-}
-
-.rig-stomp-btn.active .stomp-led {
-  background: var(--led-main);
-  box-shadow: 0 0 10px var(--led-main);
-}
-
-.stomp-slot {
-  font-size: 1.05rem;
-  font-weight: 900;
-  color: #fff;
-}
-
-.stomp-rig-title {
-  font-size: 0.64rem;
-  font-weight: 800;
-  color: var(--accent-badge-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  text-transform: uppercase;
-}
-
-.stomp-pc {
-  font-size: 0.64rem;
-  font-family: Consolas, monospace;
-  color: var(--text-muted);
-}
-
-.snapshots-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: nowrap;
-  border-top: 1px solid #262830;
-  padding-top: 8px;
-  overflow: hidden;
-}
-
-#base-hw-pc-select {
-  max-width: 145px;
-  text-overflow: ellipsis;
-}
-
-#preset-list-select {
-  max-width: 135px;
-  text-overflow: ellipsis;
-}
-
-.snap-label {
-  font-size: 0.68rem;
-  font-weight: 800;
-  color: var(--text-muted);
-}
-
-.snap-btn {
-  background: #23252c;
-  border: 1px solid #3c404a;
-  color: var(--text-light);
-  padding: 4px 9px;
+.midi-log {
+  height: 110px;
+  background: #0f1013;
+  border: 1px solid var(--border-dim);
   border-radius: 4px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.snap-btn:hover {
-  border-color: var(--accent-bright);
-}
-
-/* Live MIDI Stream Monitor */
-.log-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.rx-tx-pill {
-  font-size: 0.64rem;
-  font-family: Consolas, monospace;
-  color: var(--text-muted);
-  background: #101115;
-  padding: 2px 6px;
-  border-radius: 3px;
-  border: 1px solid #2b2d35;
-}
-
-.midi-log-list {
-  background: #0b0c0e;
-  border: 1px solid #25272e;
-  border-radius: 4px;
-  height: 105px;
-  overflow-y: auto;
   padding: 6px 8px;
-  font-family: Consolas, monospace;
-  font-size: 0.71rem;
+  font-family: 'Consolas', monospace;
+  font-size: 0.7rem;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .log-entry {
-  color: #a9b0be;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  padding-bottom: 2px;
+  line-height: 1.3;
+}
+
+.log-entry.info {
+  color: var(--text-dim);
 }
 
 .log-entry.tx {
-  color: var(--accent-badge-text);
+  color: #58a6ff;
 }
 
 .log-entry.rx {
-  color: #5ce68a;
+  color: var(--led-green);
 }
 
-.manual-midi-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  font-size: 0.72rem;
-  color: var(--text-muted);
-}
-
-.manual-midi-bar input {
-  width: 56px;
-}
-
-/* =========================================================
-   MODALS: MIDI GUIDE & CC MAPPING
-   ========================================================= */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.78);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 20px;
-}
-
-.modal-backdrop.hidden {
-  display: none;
-}
-
-.modal-window {
-  background: #18191e;
-  border: 2px solid var(--accent-main);
-  border-radius: 8px;
-  width: 100%;
-  max-width: 980px;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.85);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 18px;
-  border-bottom: 1px solid #2d3038;
-}
-
-.modal-header h2 {
-  font-size: 1.05rem;
-  color: #fff;
-}
-
-.modal-close-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-
-.modal-body {
-  padding: 16px 18px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.modal-intro {
-  font-size: 0.84rem;
-  color: #c2c6d0;
-  line-height: 1.45;
-}
-
-.guide-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 14px;
-}
-
-.guide-card {
-  background: #111216;
-  border: 1px solid #2b2e36;
-  border-radius: 6px;
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.guide-card h4 {
-  color: var(--accent-bright);
-  font-size: 0.86rem;
-}
-
-.guide-card p, .guide-card ul {
-  font-size: 0.8rem;
-  color: #c5c9d4;
-  line-height: 1.45;
-}
-
-.guide-card ul {
-  padding-left: 18px;
-}
-
-.guide-card code {
-  color: var(--accent-badge-text);
-  font-family: Consolas, monospace;
-}
-
-.cc-tables-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 14px;
-}
-
-.cc-group-box {
-  background: #111216;
-  border: 1px solid #2b2e36;
-  border-radius: 6px;
-  padding: 10px 12px;
-}
-
-.cc-group-box h4 {
-  font-size: 0.78rem;
-  color: var(--accent-bright);
-  margin-bottom: 8px;
-  border-bottom: 1px solid #252830;
-  padding-bottom: 4px;
-  text-transform: uppercase;
-}
-
-.cc-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 0;
-  font-size: 0.76rem;
-}
-
-.cc-row input {
-  width: 64px;
-  text-align: center;
-}
-
-.modal-footer {
-  padding: 12px 18px;
-  border-top: 1px solid #2d3038;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 1280px) {
-  .orange-bezel {
-    grid-template-columns: 110px 1fr;
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .amp-knobs-grid {
+    grid-template-columns: repeat(5, 1fr);
   }
-  .fx-controls-section {
-    grid-column: 1 / -1;
-    border-right: none;
-    border-top: 1px solid #2b2d33;
-    padding-top: 12px;
+  .fx-modules-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-  .jacks-section {
-    display: none;
-  }
-  .bottom-deck {
+  .bottom-strip {
     grid-template-columns: 1fr;
   }
 }

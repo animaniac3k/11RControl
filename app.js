@@ -1,693 +1,167 @@
 /**
- * Avid Eleven Rack — Portable Web MIDI Controller
- * Targets Firmware 2.0.1 (Expansion Pack / ERXP) over USB MIDI
- * Uses Official Eleven Rack User Guide Table 12 MIDI Continuous Controller Mappings
+ * Avid Eleven Rack — Live Performance Controller
+ * Clean, direct MIDI implementation based on official Avid Table 12 CCs.
+ * All controls visible in a single dashboard with 2-way MIDI tracking.
  */
 
 // ============================================================================
 // 1. OFFICIAL ELEVEN RACK TABLE 12 MIDI CC MAP
 // ============================================================================
-const DEFAULT_CC_MAP = {
-  // Global / Pedals / Utility
-  wah_pedal: 4,         // Wah Pedal Sweep (0-127)
-  rig_volume: 7,        // Volume Pedal / Master Volume (0-127)
-  exp_pedal: 11,        // Multi-FX Expression Control (0-127)
-  bank_select_msb: 0,   // Bank Select: 0 = User (A-Z), 1 = Factory (a-z)
-  tap_tempo: 64,        // Tap Tempo Trigger
-  rig_input_guitar: 65, // Rig Input Select (0-63 = Guitar True-Z, 64-127 = Mic)
-  tuner: 69,            // Chromatic Tuner On/Off (0-63=Off, 64-127=On)
+const CC_MAP = {
+  // Global & Utility
+  wah_pedal: 4,          // Wah Pedal Sweep (0-127)
+  rig_volume: 7,         // Rig Volume (0-127)
+  exp_pedal: 11,         // Multi-FX Expression Control (0-127)
+  bank_select: 0,        // Bank Select (0 = User A-Z, 1 = Factory a-z)
+  tap_tempo: 64,         // Tap Tempo Trigger
+  rig_input_guitar: 65,  // Rig Input (0-63 = Guitar True-Z, 64-127 = Mic)
+  tuner: 69,             // Chromatic Tuner / Mute (0-63 = Off, 64-127 = On)
 
-  // Global Block Bypasses (0-63 = Off, 64-127 = On)
-  bypass_wah: 43,       // Wah Bypass
-  bypass_dist: 25,      // Distortion Bypass
-  bypass_fx1: 63,       // FX 1 Bypass
-  bypass_fx2: 86,       // FX 2 Bypass
-  bypass_amp: 111,      // Global Amp Bypass (Official CC 111)
-  bypass_cab: 92,       // Cab / Mic Bypass (CC 92)
-  bypass_fxloop: 107,   // FX Loop Bypass
-  bypass_mod: 50,       // Modulation Bypass
-  bypass_delay: 28,     // Delay Bypass
-  bypass_reverb: 36,    // Reverb Bypass
+  // Stomp / Block Bypass Switches (0-63 = Bypassed, 64-127 = Engaged)
+  bypass_wah: 43,
+  bypass_dist: 25,
+  bypass_mod: 50,
+  bypass_delay: 28,
+  bypass_reverb: 36,
+  bypass_fx1: 63,
+  bypass_fx2: 86,
+  bypass_fxloop: 107,
+  bypass_amp: 111,
+  bypass_cab: 92,
 
-  // Official Table 12: Amplifier Settings 1-10 (Page 1: 1-6, Page 2: 7-10 + Rig Vol)
-  amp_p1: 14,   // Amp Setting 1 (Gain / Volume 1)
-  amp_p2: 15,   // Amp Setting 2 (Bass)
-  amp_p3: 16,   // Amp Setting 3 (Middle)
-  amp_p4: 17,   // Amp Setting 4 (Treble)
-  amp_p5: 21,   // Amp Setting 5 (Presence / Bright / Cut)
-  amp_p6: 10,   // Amp Setting 6 (Master Volume)
-  amp_p7: 113,  // Amp Setting 7 (Tremolo Speed / Boost / Deep)
-  amp_p8: 3,    // Amp Setting 8 (Tremolo Depth / Variac / Bias)
-  amp_p9: 85,   // Amp Setting 9 (Aux 1 / Bright Switch)
-  amp_p10: 24,  // Amp Setting 10 (Aux 2 / Mode)
+  // Amplifier Tone Stack & Output (Continuous Settings 0-127)
+  amp_p1: 14,   // Gain / Volume 1
+  amp_p2: 15,   // Bass
+  amp_p3: 16,   // Middle
+  amp_p4: 17,   // Treble
+  amp_p5: 21,   // Presence
+  amp_p6: 10,   // Master Volume
   amp_p11: 22,  // Amp Output Level
-  amp_p12: 7,   // Volume Pedal / Master Level
+  cab_p1: 26,   // Speaker Breakup (0-10.0)
 
-  // Official Table 12: Distortion Settings 1-6
-  dist_p1: 78,  // Distortion Setting 1 (Drive / Gain / Sustain)
-  dist_p2: 79,  // Distortion Setting 2 (Tone / EQ)
-  dist_p3: 80,  // Distortion Setting 3 (Level / Volume)
-  dist_p4: 81,  // Distortion Setting 4 (Bass / Low)
-  dist_p5: 82,  // Distortion Setting 5 (Treble / High)
-  dist_p6: 83,  // Distortion Setting 6 (Boost / Mode)
+  // Distortion Parameters
+  dist_p1: 78,  // Drive / Gain
+  dist_p2: 79,  // Tone
+  dist_p3: 80,  // Level / Volume
 
-  // Official Table 12: FX 1 Settings 1-14 (Page 1: 1-6, Page 2: 7-12, Page 3: 13-14)
-  fx1_p1: 20,   // FX1 Setting 1
-  fx1_p2: 42,   // FX1 Setting 2
-  fx1_p3: 60,   // FX1 Setting 3
-  fx1_p4: 77,   // FX1 Setting 4
-  fx1_p5: 117,  // FX1 Setting 5
-  fx1_p6: 118,  // FX1 Setting 6
-  fx1_p7: 119,  // FX1 Setting 7
-  fx1_p8: 120,  // FX1 Setting 8
-  fx1_p9: 5,    // FX1 Setting 9 (Expression / Sweep)
-  fx1_p10: 9,   // FX1 Setting 10
-  fx1_p11: 12,  // FX1 Setting 11
-  fx1_p12: 26,  // FX1 Setting 12
-  fx1_p13: 29,  // FX1 Setting 13
-  fx1_p14: 30,  // FX1 Setting 14
+  // Modulation Parameters
+  mod_p1: 62,   // Rate / Speed
+  mod_p2: 52,   // Depth / Intensity
+  mod_p3: 53,   // Mix / Level
+  mod_p4: 54,   // Feedback / Tone
 
-  // Official Table 12: FX 2 Settings 1-14 (Page 1: 1-6, Page 2: 7-12, Page 3: 13-14)
-  fx2_p1: 114,  // FX2 Setting 1
-  fx2_p2: 115,  // FX2 Setting 2
-  fx2_p3: 116,  // FX2 Setting 3
-  fx2_p4: 97,   // FX2 Setting 4
-  fx2_p5: 98,   // FX2 Setting 5
-  fx2_p6: 99,   // FX2 Setting 6
-  fx2_p7: 35,   // FX2 Setting 7 (Avoids CC 65/66/67 which switch Rig Input away from Guitar!)
-  fx2_p8: 37,   // FX2 Setting 8
-  fx2_p9: 46,   // FX2 Setting 9
-  fx2_p10: 48,  // FX2 Setting 10
-  fx2_p11: 59,  // FX2 Setting 11
-  fx2_p12: 110, // FX2 Setting 12
-  fx2_p13: 112, // FX2 Setting 13
-  fx2_p14: 70,  // FX2 Setting 14
+  // Delay Parameters
+  delay_p1: 71, // Delay Time
+  delay_p2: 72, // Feedback
+  delay_p3: 73, // Mix Level
+  delay_p4: 88, // Echo Tone / High Cut
 
-  // Official Table 12: Modulation Settings 1-7 (Page 1: 1-6, Page 2: 7)
-  mod_p1: 62,   // Modulation Setting 1 (Speed / Rate)
-  mod_p2: 52,   // Modulation Setting 2 (Depth / Intensity)
-  mod_p3: 53,   // Modulation Setting 3 (Mix / Level)
-  mod_p4: 54,   // Modulation Setting 4 (Feedback / Tone)
-  mod_p5: 57,   // Modulation Setting 5 (Pre-Delay / Manual)
-  mod_p6: 51,   // Modulation Setting 6 (Width / Sync)
-  mod_p7: 56,   // Modulation Setting 7 (Aux / Mode)
+  // Reverb Parameters
+  reverb_p1: 74, // Reverb Mix
+  reverb_p2: 75, // Decay Time
+  reverb_p3: 76, // Tone
 
-  // Official Table 12: Delay Settings 1-12 (Page 1: 1-6, Page 2: 7-12)
-  delay_p1: 71, // Delay Setting 1 (Delay Time / Rate)
-  delay_p2: 72, // Delay Setting 2 (Feedback / Repeats)
-  delay_p3: 73, // Delay Setting 3 (Mix / Level)
-  delay_p4: 88, // Delay Setting 4 (Tone / High Cut)
-  delay_p5: 87, // Delay Setting 5 (Mod Depth / Wow)
-  delay_p6: 34, // Delay Setting 6 (Mod Speed / Ratio)
-  delay_p7: 48, // Delay Setting 7 (Input / Sync)
-  delay_p8: 49, // Delay Setting 8 (Release / Mode)
-  delay_p9: 55, // Delay Setting 9 (Low Cut / Ducking)
-  delay_p10: 60,// Delay Setting 10 (Smear / Tap)
-  delay_p11: 89,// Delay Setting 11 (Stereo Width)
-  delay_p12: 90,// Delay Setting 12 (Output / Balance)
+  // FX 1 Parameters (Comp / EQ / Pitch)
+  fx1_p1: 20,   // Parameter 1 (Gain / Sens)
+  fx1_p2: 42,   // Parameter 2 (Tone / Ratio)
+  fx1_p3: 60,   // Parameter 3 (Level / Attack)
 
-  // Official Table 12: Reverb Settings 1-6
-  reverb_p1: 74, // Reverb Setting 1 (Mix / Level)
-  reverb_p2: 75, // Reverb Setting 2 (Decay)
-  reverb_p3: 76, // Reverb Setting 3 (Tone)
-  reverb_p4: 39, // Reverb Setting 4 (Pre-Delay)
-  reverb_p5: 77, // Reverb Setting 5 (Hi Damp)
-  reverb_p6: 41, // Reverb Setting 6 (Type / Balance)
+  // FX 2 Parameters (Filter / Chorus / Flanger)
+  fx2_p1: 114,  // Parameter 1 (Speed / Resonance)
+  fx2_p2: 115,  // Parameter 2 (Depth / Range)
+  fx2_p3: 116,  // Parameter 3 (Mix / Level)
 
-  // Wah Settings
-  wah_p1: 4,     // Wah Pedal Position (CC 4)
-  wah_p2: 27,    // Wah Setting / Shine
-
-  // Cab & Mic Block Settings
-  cab_p1: 26,    // Speaker Breakup / Cab Setting (0.0-10.0)
-  cab_p2: 22,    // Cab / Amp Output Level
-  cab_p3: 72,    // Cab Model Index (Reference)
-  cab_p4: 73,    // Mic Model Index (Reference)
-  cab_p5: 74,    // Mic Axis (0-63 = Off-Axis, 64-127 = On-Axis)
-  fxloop_p1: 108,// FX Loop Send (User Assignable)
-  fxloop_p2: 109,// FX Loop Return (User Assignable)
-  fxloop_p3: 110 // FX Loop Mix (User Assignable)
+  // FX Loop
+  fxloop_p3: 110 // FX Loop Mix
 };
 
 // ============================================================================
-// 2. AMP MODELS & REPRESENTATIVE RIG LINKS
+// 2. APPLICATION STATE
 // ============================================================================
-const AMP_MODELS = [
-  { id: 'plexi_100', name: '1969 Plexiglas 100W', defaultRigPC: 0, defaultCabId: '4x12_green_25w', defaultMicId: 'dyn_57', knobs: ['VOL 1', 'VOL 2', 'BASS', 'MID', 'TREBLE', 'PRESENCE', 'BOOST', 'VARIAC', 'BRIGHT', 'HUM', 'AMP OUT', 'RIG VOL'] },
-  { id: 'plexi_vari', name: '1967 Plexiglas Vari (ERXP)', defaultRigPC: 4, defaultCabId: '4x12_green_20w', defaultMicId: 'rib_121', knobs: ['VOL 1', 'VOL 2', 'BASS', 'MID', 'TREBLE', 'PRESENCE', 'VARIAC', 'DEEP', 'BRIGHT', 'HUM', 'AMP OUT', 'RIG VOL'] },
-  { id: 'lead_800', name: '1982 Lead 800 (JCM800)', defaultRigPC: 1, defaultCabId: '4x12_classic_30', defaultMicId: 'dyn_57', knobs: ['PREAMP', 'BASS', 'MID', 'TREBLE', 'PRESENCE', 'MASTER', 'BOOST', 'DEPTH', 'BRIGHT', 'GATE', 'AMP OUT', 'RIG VOL'] },
-  { id: 'dc_mod_800', name: 'DC Modern 800 (ERXP)', defaultRigPC: 5, defaultCabId: '4x12_65w', defaultMicId: 'dyn_421', knobs: ['GAIN', 'BASS', 'MID', 'TREBLE', 'PRESENCE', 'MASTER', 'BOOST', 'DEPTH', 'BRIGHT', 'GATE', 'AMP OUT', 'RIG VOL'] },
-  { id: 'treadplate', name: '1992 Treadplate Modern (Recto)', defaultRigPC: 3, defaultCabId: '4x12_classic_30', defaultMicId: 'dyn_57', knobs: ['GAIN', 'BASS', 'MID', 'TREBLE', 'PRESENCE', 'MASTER', 'BOLD/SPG', 'DIODE/TB', 'BOOST', 'GATE', 'AMP OUT', 'RIG VOL'] },
-  { id: 'rb_01b', name: 'RB-01b Red/Blue/Grn (Bogner ERXP)', defaultRigPC: 6, defaultCabId: '2x12_b30', defaultMicId: 'rib_121', knobs: ['GAIN', 'BASS', 'MID', 'TREBLE', 'PRESENCE', 'MASTER', 'EXCURSION', 'BOOST', 'ST-CLASS', 'GATE', 'AMP OUT', 'RIG VOL'] },
-  { id: 'dc_mod_sod', name: 'DC Modern SOD (Suhr OD100 ERXP)', defaultRigPC: 7, defaultCabId: '4x12_classic_30', defaultMicId: 'cond_414', knobs: ['GAIN', 'BASS', 'MID', 'TREBLE', 'PRESENCE', 'MASTER', 'WHOMP', 'BOOST', 'BRIGHT', 'GATE', 'AMP OUT', 'RIG VOL'] },
-  { id: 'sl_100', name: '1989 SL-100 Drive/Crunch (SLO)', defaultRigPC: 8, defaultCabId: '4x12_classic_30', defaultMicId: 'dyn_57', knobs: ['PREAMP', 'BASS', 'MID', 'TREBLE', 'PRESENCE', 'MASTER', 'BRIGHT', 'DEEP', 'BOOST', 'GATE', 'AMP OUT', 'RIG VOL'] },
-  { id: 'black_lux', name: '1965 Black Lux (Deluxe Reverb)', defaultRigPC: 2, defaultCabId: '1x12_black_lux', defaultMicId: 'cond_67', knobs: ['VOLUME', 'BASS', 'TREBLE', 'SPEED', 'INTENSITY', 'MASTER', 'BRIGHT', 'TREMOLO', 'BIAS', 'HUM', 'AMP OUT', 'RIG VOL'] },
-  { id: 'black_sr', name: '1966 Black SR (Super Rev ERXP)', defaultRigPC: 9, defaultCabId: '4x10_black_sr', defaultMicId: 'rib_121', knobs: ['VOLUME', 'BASS', 'MID', 'TREBLE', 'BRIGHT', 'MASTER', 'SPEED', 'INTENSITY', 'BIAS', 'HUM', 'AMP OUT', 'RIG VOL'] },
-  { id: 'black_vib', name: '1964 Black Vib (Vibrolux ERXP)', defaultRigPC: 10, defaultCabId: '1x15_open_back', defaultMicId: 'cond_87', knobs: ['VOLUME', 'BASS', 'TREBLE', 'BRIGHT', 'SPEED', 'INTENSITY', 'MASTER', 'BIAS', 'TREMOLO', 'HUM', 'AMP OUT', 'RIG VOL'] },
-  { id: 'tweed_bass', name: '1959 Tweed Bass (Bassman)', defaultRigPC: 11, defaultCabId: '4x10_tweed_bass', defaultMicId: 'dyn_409', knobs: ['VOL NORM', 'VOL BRT', 'BASS', 'MID', 'TREBLE', 'PRESENCE', 'JUMPER', 'SAG', 'BIAS', 'HUM', 'AMP OUT', 'RIG VOL'] },
-  { id: 'ac_hi_boost', name: '1963 AC Hi Boost (Vox AC30)', defaultRigPC: 12, defaultCabId: '2x12_ac_blue', defaultMicId: 'cond_67', knobs: ['VOLUME', 'BASS', 'TREBLE', 'CUT', 'SPEED', 'DEPTH', 'TREMOLO', 'BRILLIANT', 'SAG', 'HUM', 'AMP OUT', 'RIG VOL'] },
-  { id: 'ms_30', name: 'MS-30 Boutique (Matchless ERXP)', defaultRigPC: 13, defaultCabId: '2x12_ac_blue', defaultMicId: 'rib_121', knobs: ['VOLUME', 'BASS', 'MID', 'TREBLE', 'BRILL', 'MASTER', 'CUT', 'SAG', 'BIAS', 'HUM', 'AMP OUT', 'RIG VOL'] },
-  { id: 'blue_line', name: '1969 Blue Line Bass (SVT ERXP)', defaultRigPC: 14, defaultCabId: '8x10_blue_line', defaultMicId: 'dyn_12', knobs: ['VOLUME', 'BASS', 'MID', 'MID FREQ', 'TREBLE', 'MASTER', 'ULTRA HI', 'ULTRA LO', 'BOOST', 'GATE', 'AMP OUT', 'RIG VOL'] }
-];
-
-// All 15 Speaker Cabinets in Eleven Rack + Firmware 2.0.1 Expansion Pack (ERXP)
-const CAB_MODELS = [
-  { id: '4x12_classic_30', name: '4x12 Classic 30 (Marshall V30)' },
-  { id: '4x12_green_25w', name: '4x12 Green 25W (\'68 Greenback)' },
-  { id: '4x12_green_20w', name: '4x12 Green 20W (Heritage G12M)' },
-  { id: '4x12_65w', name: '4x12 65W (Celestion G12-65)' },
-  { id: '2x12_ac_blue', name: '2x12 AC Blue (\'66 Vox Alnico Blue)' },
-  { id: '2x12_black_duo', name: '2x12 Black Duo (\'67 Twin C12N)' },
-  { id: '2x12_b30', name: '2x12 B30 (Bogner Vintage 30)' },
-  { id: '2x12_silver_cone', name: '2x12 Silver Cone (Roland JC-120)' },
-  { id: '4x10_tweed_bass', name: '4x10 Tweed Bass (\'59 Bassman P10Q)' },
-  { id: '4x10_black_sr', name: '4x10 Black SR (Super Reverb CTS)' },
-  { id: '1x12_black_lux', name: '1x12 Black Lux (\'64 Deluxe P12N)' },
-  { id: '1x12_tweed_lux', name: '1x12 Tweed Lux (\'59 Deluxe P12Q)' },
-  { id: '1x15_open_back', name: '1x15 Open Back (Vibrolux C15N)' },
-  { id: '1x8_custom', name: '1x8 Custom Mini (\'60s Champ)' },
-  { id: '8x10_blue_line', name: '8x10 Blue Line (Ampeg SVT Bass)' }
-];
-
-// All Microphone Models in Eleven Rack
-const MIC_MODELS = [
-  { id: 'dyn_57', name: 'Dyn 57 (Shure SM57)' },
-  { id: 'dyn_421', name: 'Dyn 421 (Sennheiser MD421)' },
-  { id: 'dyn_409', name: 'Dyn 409 (Sennheiser MD409)' },
-  { id: 'dyn_7', name: 'Dyn 7 (Shure SM7)' },
-  { id: 'cond_67', name: 'Cond 67 (Neumann U67)' },
-  { id: 'cond_87', name: 'Cond 87 (Neumann U87)' },
-  { id: 'cond_414', name: 'Cond 414 (AKG C414)' },
-  { id: 'rib_121', name: 'Ribbon 121 (Royer R-121)' },
-  { id: 'dyn_20', name: 'Dyn 20 (EV RE20 Bass)' },
-  { id: 'dyn_12', name: 'Dyn 12 (AKG D112 Bass)' }
-];
-
-// Effect Models per Signal Chain Block (Updates knob parameter labels & saves with Virtual Rig)
-const BLOCK_EFFECT_MODELS = {
-  wah: [
-    { id: 'black_wah', name: 'Black Wah (Cry Baby)', knobs: ['SWEEP', 'SHINE / Q'] },
-    { id: 'shine_wah', name: 'Shine Wah (Vox Clyde)', knobs: ['SWEEP', 'VOCAL PEAK'] }
-  ],
-  dist: [
-    { id: 'green_jrc', name: 'Green JRC OD (TS808)', knobs: ['DRIVE', 'TONE', 'LEVEL', 'LOW CUT', 'HI CUT', 'CLIP MODE'] },
-    { id: 'white_boost', name: 'White Boost (RC Booster ERXP)', knobs: ['GAIN', 'VOLUME', 'BASS', 'TREBLE', 'COMP', 'BOOST'] },
-    { id: 'black_op', name: 'Black Op Dist (ProCo RAT)', knobs: ['DISTORTION', 'FILTER', 'VOLUME', 'BASS', 'TREBLE', 'TIGHT'] },
-    { id: 'tri_fuzz', name: 'Tri-Knob Fuzz (Big Muff)', knobs: ['SUSTAIN', 'TONE', 'VOLUME', 'MID SCOOP', 'GATE', 'WICKER'] },
-    { id: 'dc_dist', name: 'DC Vintage Overdrive', knobs: ['DRIVE', 'TONE', 'LEVEL', 'BASS', 'TREBLE', 'VOICE'] }
-  ],
-  fx1: [
-    { id: 'para_eq', name: '5-Band Parametric EQ (ERXP)', knobs: ['B1 GAIN', 'B2 GAIN', 'B3 GAIN', 'B4 GAIN', 'B5 GAIN', 'OUTPUT', 'B1 FREQ', 'B2 FREQ', 'B3 FREQ', 'B4 FREQ', 'B5 FREQ', 'B1 Q', 'B2 Q', 'B3 Q'] },
-    { id: 'gray_comp', name: 'Gray Compressor (Ross)', knobs: ['SENSITIV', 'LEVEL', 'INPUT', 'ATTACK', 'RELEASE', 'MIX', 'TONE', 'KNEE', 'SWEEP', 'TRIM', 'LOW CUT', 'HI CUT', 'BYP LVL', 'OUT GAIN'] },
-    { id: 'dyn3_comp', name: 'Dyn3 Studio Comp (ERXP)', knobs: ['THRESH', 'RATIO', 'ATTACK', 'RELEASE', 'GAIN', 'KNEE', 'MIX', 'SIDECHAIN', 'SWEEP', 'LO CUT', 'HI CUT', 'LIMIT', 'PEAK/RMS', 'TRIM'] },
-    { id: 'graphic_eq', name: '7-Band Graphic EQ', knobs: ['100 HZ', '200 HZ', '400 HZ', '800 HZ', '1.6 KHZ', '3.2 KHZ', '6.4 KHZ', 'OUTPUT', 'SWEEP', 'LO SHELF', 'HI SHELF', 'WIDTH', 'Q FACTOR', 'TRIM'] },
-    { id: 'pitch_shift', name: 'Custom Pitch / Whammy', knobs: ['VOICE 1', 'VOICE 2', 'MIX', 'TONE', 'LEVEL', 'TRACKING', 'FINE 1', 'FINE 2', 'PEDAL SWP', 'KEY', 'SCALE', 'PRE-DLY', 'HI CUT', 'TRIM'] },
-    { id: 'chunka_filter', name: 'Chunka-Chunka Auto-Wah', knobs: ['SENSITIV', 'ATTACK', 'DECAY', 'RANGE', 'RESONANCE', 'MIX', 'FREQ', 'UP/DOWN', 'PEDAL SWP', 'PEAK', 'LO PASS', 'HI PASS', 'Q WIDTH', 'OUTPUT'] }
-  ],
-  fx2: [
-    { id: 'multi_chorus', name: 'Multi-Chorus (Studio)', knobs: ['RATE', 'DEPTH', 'MIX', 'WIDTH', 'PRE-DLY', 'OUTPUT', 'VOICES', 'SYNC', 'PEDAL SWP', 'TONE', 'LO CUT', 'FDBK', 'HI CUT', 'TRIM'] },
-    { id: 'para_eq', name: '5-Band Parametric EQ (ERXP)', knobs: ['B1 GAIN', 'B2 GAIN', 'B3 GAIN', 'B4 GAIN', 'B5 GAIN', 'OUTPUT', 'B1 FREQ', 'B2 FREQ', 'B3 FREQ', 'B4 FREQ', 'B5 FREQ', 'B1 Q', 'B2 Q', 'B3 Q'] },
-    { id: 'graphic_eq', name: '7-Band Graphic EQ', knobs: ['100 HZ', '200 HZ', '400 HZ', '800 HZ', '1.6 KHZ', '3.2 KHZ', '6.4 KHZ', 'OUTPUT', 'SWEEP', 'LO SHELF', 'HI SHELF', 'WIDTH', 'Q FACTOR', 'TRIM'] },
-    { id: 'vibe_phaser', name: 'Vibe Phaser (Uni-Vibe)', knobs: ['SPEED', 'INTENSITY', 'MIX', 'VOLUME', 'CHOR/VIB', 'OUTPUT', 'RESON', 'SYNC', 'PEDAL SWP', 'PHASE', 'WIDTH', 'LO CUT', 'HI CUT', 'TRIM'] },
-    { id: 'flanger', name: 'Electric Flanger', knobs: ['RATE', 'DEPTH', 'MIX', 'FEEDBACK', 'MANUAL', 'OUTPUT', 'RESON', 'SYNC', 'PEDAL SWP', 'ENV', 'WIDTH', 'LO CUT', 'HI CUT', 'TRIM'] },
-    { id: 'dyn3_comp', name: 'Dyn3 Studio Comp (ERXP)', knobs: ['THRESH', 'RATIO', 'ATTACK', 'RELEASE', 'GAIN', 'KNEE', 'MIX', 'SIDECHAIN', 'SWEEP', 'LO CUT', 'HI CUT', 'LIMIT', 'PEAK/RMS', 'TRIM'] }
-  ],
-  mod: [
-    { id: 'c1_chorus', name: 'C1 Chorus / Vibrato (CE-1)', knobs: ['RATE', 'DEPTH', 'MIX', 'VIB SPD', 'VIB DPTH', 'SYNC', 'CHOR/VIB'] },
-    { id: 'multi_chorus', name: 'Multi-Chorus', knobs: ['RATE', 'DEPTH', 'MIX', 'TONE', 'PRE-DELAY', 'SYNC', 'VOICES'] },
-    { id: 'orange_phaser', name: 'Orange Phaser (Phase 90)', knobs: ['SPEED', 'DEPTH', 'MIX', 'FEEDBACK', 'MANUAL', 'SYNC', 'SCRIPT'] },
-    { id: 'vibe_phaser', name: 'Vibe Phaser (Uni-Vibe)', knobs: ['SPEED', 'INTENSITY', 'VOLUME', 'OFFSET', 'LAMP', 'SYNC', 'CHOR/VIB'] },
-    { id: 'roto_speaker', name: 'Roto Speaker (Leslie 122)', knobs: ['SPEED', 'DEPTH', 'MIX', 'DRIVE', 'HORN BAL', 'SYNC', 'FAST/SLOW'] },
-    { id: 'flanger', name: 'Studio Flanger', knobs: ['RATE', 'DEPTH', 'MIX', 'FEEDBACK', 'PRE-DELAY', 'SYNC', 'INVERT'] }
-  ],
-  delay: [
-    { id: 'tape_echo', name: 'Tape Echo (EP-3 Echoplex)', knobs: ['TIME', 'FEEDBACK', 'MIX', 'TONE', 'WOW/FLUT', 'REC LVL', 'SYNC', 'HEAD SEL', 'LOW CUT', 'SMEAR', 'WIDTH', 'BALANCE'] },
-    { id: 'bbd_delay', name: 'BBD Analog Delay (Memory Man)', knobs: ['DELAY', 'FEEDBACK', 'BLEND', 'TONE', 'MOD DEPTH', 'MOD SPD', 'SYNC', 'CHOR/VIB', 'LOW CUT', 'GAIN', 'WIDTH', 'BALANCE'] },
-    { id: 'dyn_delay', name: 'Dyn Digital Delay (2290 ERXP)', knobs: ['TIME', 'FEEDBACK', 'MIX', 'HI CUT', 'MOD DEPTH', 'MOD RATE', 'SYNC', 'MODE', 'DUCKING', 'RELEASE', 'WIDTH', 'BALANCE'] }
-  ],
-  reverb: [
-    { id: 'eleven_sr', name: 'Eleven SR Studio Reverb', knobs: ['MIX', 'DECAY', 'TONE', 'PRE-DELAY', 'HI DAMP', 'TYPE'] },
-    { id: 'black_spring', name: 'Black Spring (Fender Tank)', knobs: ['MIX', 'DECAY', 'TONE', 'DWELL', 'SPLASH', 'SPRING'] },
-    { id: 'hall_rev', name: 'Concert Hall Reverb', knobs: ['MIX', 'DECAY', 'TONE', 'PRE-DELAY', 'HI DAMP', 'SIZE'] },
-    { id: 'room_rev', name: 'Acoustic Studio Room', knobs: ['MIX', 'DECAY', 'TONE', 'PRE-DELAY', 'HI DAMP', 'DIFFUSE'] }
-  ]
-};
-
-// Default Rig Names for Banks A-Z (104 slots) so every Rig slot has a meaningful title out-of-the-box
-const DEFAULT_FACTORY_RIG_NAMES = [
-  // Bank A (0-3)
-  'BIG BLUE PLEXI', 'MODERN 800 CRUNCH', 'BLACKFACE CHIME', 'TREADPLATE LEAD',
-  // Bank B (4-7)
-  'BROWN SOUND VARIAC', 'HOT ROD 800', 'BOGNER RED XTC', 'SUHR OD100 LEAD',
-  // Bank C (8-11)
-  'SOLDANO SLO OVERDRIVE', 'SUPER REVERB BLUES', '64 VIBROLUX TREM', '59 TWEED BASSMAN',
-  // Bank D (12-15)
-  'AC30 TOP BOOST CHIME', 'MATCHLESS CHIEFTAIN', 'AMPEG SVT BASS RIG', 'JTM45 VINTAGE CRUNCH',
-  // Bank E (16-19)
-  '50W PLEXI BARK', 'DC MODERN CLEAN', 'DC VINTAGE OVERDRIVE', 'BLACK MINI CHAMP',
-  // Bank F (20-23)
-  'TWIN REVERB SPARKLE', '92 RECTO RHYTHMWALL', 'BOGNER BLUE CRUNCH', 'SL-100 CLEAN CHORUS',
-  // Bank G (24-27)
-  'FUZZ FACE PLEXI', 'TAPE ECHO CATHEDRAL', 'ROTO SPEAKER ORGAN', 'ORANGE PHASER FUNK',
-  // Bank H (28-31)
-  '80S STADIUM SOLO', 'COUNTRY CHICKEN PICK', 'JAZZ WARMTH ARCHTOP', 'AMBIENT SWELL PAD'
-];
-
-function getDefaultRigName(bankType, pcNum) {
-  if (pcNum < DEFAULT_FACTORY_RIG_NAMES.length) {
-    return DEFAULT_FACTORY_RIG_NAMES[pcNum];
-  }
-  const bankIdx = Math.floor(pcNum / 4);
-  const slotIdx = (pcNum % 4) + 1;
-  const letter = bankType === 'USER'
-    ? String.fromCharCode(65 + bankIdx)
-    : String.fromCharCode(97 + bankIdx);
-  const styles = ['CLEAN STUDIO', 'CRUNCH RHYTHM', 'HIGH GAIN', 'MOD AMBIENT'];
-  return `${letter}${slotIdx} ${styles[pcNum % 4]}`;
-}
-
-// ============================================================================
-// 3. SIGNAL CHAIN BLOCKS (WITH PAGE 1 & PAGE 2 SUPPORT & HOVER DETAILS)
-// ============================================================================
-const SIGNAL_BLOCKS = [
-  {
-    id: 'wah',
-    short: 'WAH',
-    title: 'WAH CONTROLLER',
-    bypassKey: 'bypass_wah',
-    params: [
-      { key: 'wah_p1', name: 'SWEEP', desc: 'Wah Pedal Sweep Position' },
-      { key: 'wah_p2', name: 'SHINE / Q', desc: 'Wah Shine / Vocal Peak Adjustment' }
-    ]
-  },
-  {
-    id: 'dist',
-    short: 'DIST',
-    title: 'DISTORTION / OVERDRIVE',
-    bypassKey: 'bypass_dist',
-    params: [
-      { key: 'dist_p1', name: 'DRIVE', desc: 'Distortion Setting 1: Drive / Gain / Sustain' },
-      { key: 'dist_p2', name: 'TONE', desc: 'Distortion Setting 2: Tone / Mid EQ' },
-      { key: 'dist_p3', name: 'LEVEL', desc: 'Distortion Setting 3: Output Level / Volume' },
-      { key: 'dist_p4', name: 'BASS', desc: 'Distortion Setting 4: Bass / Low Cut' },
-      { key: 'dist_p5', name: 'TREBLE', desc: 'Distortion Setting 5: Treble / High Cut' },
-      { key: 'dist_p6', name: 'BOOST / MODE', desc: 'Distortion Setting 6: Boost / Clipping Mode' }
-    ]
-  },
-  {
-    id: 'fx1',
-    short: 'FX 1',
-    title: 'FX 1 (COMP / EQ / PITCH / STOMP)',
-    bypassKey: 'bypass_fx1',
-    params: [
-      // Page 1 (Knobs 1-6)
-      { key: 'fx1_p1', name: 'GAIN / B1', desc: 'FX 1 Setting 1: Input Gain / Threshold / Para EQ Band 1 Gain' },
-      { key: 'fx1_p2', name: 'TONE / B2', desc: 'FX 1 Setting 2: Tone / Compression Ratio / Para EQ Band 2 Gain' },
-      { key: 'fx1_p3', name: 'LEVEL / B3', desc: 'FX 1 Setting 3: Output Level / Attack / Para EQ Band 3 Gain' },
-      { key: 'fx1_p4', name: 'MIX / B4', desc: 'FX 1 Setting 4: Wet-Dry Mix / Release / Para EQ Band 4 Gain' },
-      { key: 'fx1_p5', name: 'DEPTH / B5', desc: 'FX 1 Setting 5: Depth / Knee / Para EQ Band 5 Gain' },
-      { key: 'fx1_p6', name: 'RATE / OUT', desc: 'FX 1 Setting 6: Rate / Output Gain' },
-      // Page 2 (Knobs 7-12)
-      { key: 'fx1_p7', name: 'VOICE / F1', desc: 'FX 1 Setting 7: Voice / Tempo Sync / Para EQ Band 1 Freq' },
-      { key: 'fx1_p8', name: 'HARMONY / F2', desc: 'FX 1 Setting 8: Harmony Interval / Para EQ Band 2 Freq' },
-      { key: 'fx1_p9', name: 'PEDAL SWEEP', desc: 'FX 1 Setting 9: Expression / Pitch Sweep Control' },
-      { key: 'fx1_p10', name: 'KEY / F3', desc: 'FX 1 Setting 10: Pitch Scale / Para EQ Band 3 Freq' },
-      { key: 'fx1_p11', name: 'DETUNE / F4', desc: 'FX 1 Setting 11: Detune / Para EQ Band 4 Freq' },
-      { key: 'fx1_p12', name: 'LOW CUT / Q1', desc: 'FX 1 Setting 12: Low Cut / Para EQ Band 1 Q' },
-      // Page 3 (Knobs 13-14)
-      { key: 'fx1_p13', name: 'HI CUT / Q2', desc: 'FX 1 Setting 13: High Cut / Para EQ Band 2 Q' },
-      { key: 'fx1_p14', name: 'TRIM / Q3', desc: 'FX 1 Setting 14: Trim / Para EQ Band 3 Q' }
-    ]
-  },
-  {
-    id: 'fx2',
-    short: 'FX 2',
-    title: 'FX 2 (EQ / CHORUS / FILTER / PITCH)',
-    bypassKey: 'bypass_fx2',
-    params: [
-      // Page 1 (Knobs 1-6)
-      { key: 'fx2_p1', name: 'SPEED / B1', desc: 'FX 2 Setting 1: Speed / Rate / Para EQ Band 1 Gain' },
-      { key: 'fx2_p2', name: 'DEPTH / B2', desc: 'FX 2 Setting 2: Depth / Intensity / Para EQ Band 2 Gain' },
-      { key: 'fx2_p3', name: 'MIX / B3', desc: 'FX 2 Setting 3: Wet-Dry Mix / Level / Para EQ Band 3 Gain' },
-      { key: 'fx2_p4', name: 'FDBK / B4', desc: 'FX 2 Setting 4: Feedback / Tone / Para EQ Band 4 Gain' },
-      { key: 'fx2_p5', name: 'PRE-DLY / B5', desc: 'FX 2 Setting 5: Pre-Delay / Width / Para EQ Band 5 Gain' },
-      { key: 'fx2_p6', name: 'OUTPUT', desc: 'FX 2 Setting 6: Output Level / Volume' },
-      // Page 2 (Knobs 7-12)
-      { key: 'fx2_p7', name: 'RESON / F1', desc: 'FX 2 Setting 7: Resonance / Para EQ Band 1 Freq' },
-      { key: 'fx2_p8', name: 'SYNC / F2', desc: 'FX 2 Setting 8: Tempo Sync / Voice / Para EQ Band 2 Freq' },
-      { key: 'fx2_p9', name: 'PEDAL SWEEP', desc: 'FX 2 Setting 9: Expression / Filter Sweep Control' },
-      { key: 'fx2_p10', name: 'ENV / F3', desc: 'FX 2 Setting 10: Envelope Sensitivity / Para EQ Band 3 Freq' },
-      { key: 'fx2_p11', name: 'WIDTH / F4', desc: 'FX 2 Setting 11: Stereo Width / Para EQ Band 4 Freq' },
-      { key: 'fx2_p12', name: 'LOW CUT / Q1', desc: 'FX 2 Setting 12: Low Cut / Para EQ Band 1 Q' },
-      // Page 3 (Knobs 13-14)
-      { key: 'fx2_p13', name: 'HI CUT / Q2', desc: 'FX 2 Setting 13: High Cut / Para EQ Band 2 Q' },
-      { key: 'fx2_p14', name: 'TRIM / Q3', desc: 'FX 2 Setting 14: Trim / Para EQ Band 3 Q' }
-    ]
-  },
-  {
-    id: 'amp',
-    short: 'AMP',
-    title: 'AMPLIFIER BLOCK',
-    bypassKey: 'bypass_amp',
-    params: [
-      // Page 1 (Knobs 1-6)
-      { key: 'amp_p1', name: 'GAIN', desc: 'Amp Setting 1: Preamp Gain / Volume 1' },
-      { key: 'amp_p2', name: 'BASS', desc: 'Amp Setting 2: Bass / Low EQ' },
-      { key: 'amp_p3', name: 'MID', desc: 'Amp Setting 3: Middle EQ' },
-      { key: 'amp_p4', name: 'TREBLE', desc: 'Amp Setting 4: Treble / High EQ' },
-      { key: 'amp_p5', name: 'PRESENCE', desc: 'Amp Setting 5: Presence / High Cut / Bright' },
-      { key: 'amp_p6', name: 'MASTER', desc: 'Amp Setting 6: Master Volume' },
-      // Page 2 (Knobs 7-12)
-      { key: 'amp_p7', name: 'BOOST / SPD', desc: 'Amp Setting 7: Boost / Tremolo Speed / Excursion' },
-      { key: 'amp_p8', name: 'DEPTH / VAR', desc: 'Amp Setting 8: Depth / Variac / Tremolo Intensity' },
-      { key: 'amp_p9', name: 'BRIGHT', desc: 'Amp Setting 9: Bright Switch / Class Mode' },
-      { key: 'amp_p10', name: 'GATE / HUM', desc: 'Amp Setting 10: Noise Gate / Hum Level' },
-      { key: 'amp_p11', name: 'AMP OUT', desc: 'Amp Output Level' },
-      { key: 'amp_p12', name: 'RIG VOL', desc: 'Overall Rig Volume' }
-    ]
-  },
-  {
-    id: 'cab',
-    short: 'CAB',
-    title: 'CABINET & MICROPHONE',
-    bypassKey: 'bypass_cab',
-    params: [
-      { key: 'cab_p1', name: 'SPK BREAKUP', desc: 'Speaker Breakup (0.0–10.0 Cone Distortion added in ERXP Firmware 2.0)' },
-      { key: 'cab_p2', name: 'CAB OUTPUT', desc: 'Cabinet / Amp Output Level' },
-      { key: 'cab_p3', name: 'CAB SELECT', desc: 'Speaker Cabinet Model Selector (15 Models)' },
-      { key: 'cab_p4', name: 'MIC SELECT', desc: 'Microphone Model Selector (10 Models)' },
-      { key: 'cab_p5', name: 'MIC AXIS', desc: 'Microphone Placement: On-Axis (Brighter) vs Off-Axis (Warmer)' }
-    ]
-  },
-  {
-    id: 'fxloop',
-    short: 'LOOP',
-    title: 'EXTERNAL FX LOOP',
-    bypassKey: 'bypass_fxloop',
-    params: [
-      { key: 'fxloop_p1', name: 'SEND', desc: 'FX Loop Send Level' },
-      { key: 'fxloop_p2', name: 'RETURN', desc: 'FX Loop Return Level' },
-      { key: 'fxloop_p3', name: 'MIX', desc: 'FX Loop Wet / Dry Mix' }
-    ]
-  },
-  {
-    id: 'mod',
-    short: 'MOD',
-    title: 'MODULATION (CHORUS / PHASER / ROTO)',
-    bypassKey: 'bypass_mod',
-    params: [
-      // Page 1 (Knobs 1-6)
-      { key: 'mod_p1', name: 'RATE', desc: 'Modulation Setting 1: Speed / Rate' },
-      { key: 'mod_p2', name: 'DEPTH', desc: 'Modulation Setting 2: Depth / Intensity' },
-      { key: 'mod_p3', name: 'MIX', desc: 'Modulation Setting 3: Wet / Dry Mix / Level' },
-      { key: 'mod_p4', name: 'FEEDBACK', desc: 'Modulation Setting 4: Feedback / Regeneration / Tone' },
-      { key: 'mod_p5', name: 'PRE-DELAY', desc: 'Modulation Setting 5: Pre-Delay / Manual Sweep' },
-      { key: 'mod_p6', name: 'SYNC', desc: 'Modulation Setting 6: Tempo Sync / Stereo Width' },
-      // Page 2 (Knob 7)
-      { key: 'mod_p7', name: 'MODE / VIBE', desc: 'Modulation Setting 7: Chorus-Vibrato Mode / Aux' }
-    ]
-  },
-  {
-    id: 'delay',
-    short: 'DLY',
-    title: 'DELAY (TAPE / BBD / DYN)',
-    bypassKey: 'bypass_delay',
-    params: [
-      // Page 1 (Knobs 1-6)
-      { key: 'delay_p1', name: 'TIME', desc: 'Delay Setting 1: Delay Time / Repeats Rate' },
-      { key: 'delay_p2', name: 'FEEDBACK', desc: 'Delay Setting 2: Feedback / Number of Repeats' },
-      { key: 'delay_p3', name: 'MIX', desc: 'Delay Setting 3: Wet / Dry Mix Level' },
-      { key: 'delay_p4', name: 'TONE', desc: 'Delay Setting 4: Echo Tone / High Cut Filter' },
-      { key: 'delay_p5', name: 'MOD DEPTH', desc: 'Delay Setting 5: Modulation Depth / Tape Wow' },
-      { key: 'delay_p6', name: 'MOD SPEED', desc: 'Delay Setting 6: Modulation Rate / L-R Ratio' },
-      // Page 2 (Knobs 7-12)
-      { key: 'delay_p7', name: 'SYNC', desc: 'Delay Setting 7: Tempo Sync Subdivision' },
-      { key: 'delay_p8', name: 'MODE', desc: 'Delay Setting 8: Routing Mode (Mono / Stereo / Pong)' },
-      { key: 'delay_p9', name: 'LOW CUT', desc: 'Delay Setting 9: Low Cut / Ducking Threshold' },
-      { key: 'delay_p10', name: 'SMEAR / TAP', desc: 'Delay Setting 10: Tape Smear / Head Select' },
-      { key: 'delay_p11', name: 'WIDTH', desc: 'Delay Setting 11: Stereo Spread / Width' },
-      { key: 'delay_p12', name: 'BALANCE', desc: 'Delay Setting 12: Left / Right Output Balance' }
-    ]
-  },
-  {
-    id: 'reverb',
-    short: 'REV',
-    title: 'REVERB (SPRING / STUDIO / HALL)',
-    bypassKey: 'bypass_reverb',
-    params: [
-      { key: 'reverb_p1', name: 'MIX', desc: 'Reverb Setting 1: Wet / Dry Mix Level' },
-      { key: 'reverb_p2', name: 'DECAY', desc: 'Reverb Setting 2: Reverb Decay Time' },
-      { key: 'reverb_p3', name: 'TONE', desc: 'Reverb Setting 3: Reverb Tone / Brightness' },
-      { key: 'reverb_p4', name: 'PRE-DELAY', desc: 'Reverb Setting 4: Pre-Delay Time' },
-      { key: 'reverb_p5', name: 'HI DAMP', desc: 'Reverb Setting 5: High Frequency Damping' },
-      { key: 'reverb_p6', name: 'TYPE', desc: 'Reverb Setting 6: Reverb Room / Spring Type' }
-    ]
-  }
-];
-
-// ============================================================================
-// 4. APPLICATION STATE
-// ============================================================================
-const DEFAULT_PARAM_VALUES = {
-  rig_volume: 100,
-  wah_pedal: 0,
-  exp_pedal: 64,
-  // Amp
-  amp_p1: 88, amp_p2: 68, amp_p3: 75, amp_p4: 82, amp_p5: 70, amp_p6: 90,
-  amp_p7: 64, amp_p8: 64, amp_p9: 64, amp_p10: 64, amp_p11: 100, amp_p12: 100,
-  // Dist
-  dist_p1: 72, dist_p2: 64, dist_p3: 85, dist_p4: 64, dist_p5: 64, dist_p6: 64,
-  // FX1 & FX2 (14 settings across 3 pages)
-  fx1_p1: 64, fx1_p2: 64, fx1_p3: 64, fx1_p4: 64, fx1_p5: 64, fx1_p6: 64,
-  fx1_p7: 64, fx1_p8: 64, fx1_p9: 64, fx1_p10: 64, fx1_p11: 64, fx1_p12: 64, fx1_p13: 64, fx1_p14: 64,
-  fx2_p1: 64, fx2_p2: 64, fx2_p3: 64, fx2_p4: 64, fx2_p5: 64, fx2_p6: 64,
-  fx2_p7: 64, fx2_p8: 64, fx2_p9: 64, fx2_p10: 64, fx2_p11: 64, fx2_p12: 64, fx2_p13: 64, fx2_p14: 64,
-  // Mod
-  mod_p1: 48, mod_p2: 64, mod_p3: 50, mod_p4: 40, mod_p5: 20, mod_p6: 0, mod_p7: 64,
-  // Delay (12 settings across 2 pages)
-  delay_p1: 58, delay_p2: 45, delay_p3: 42, delay_p4: 70, delay_p5: 25, delay_p6: 64,
-  delay_p7: 0, delay_p8: 0, delay_p9: 40, delay_p10: 64, delay_p11: 80, delay_p12: 64,
-  // Reverb
-  reverb_p1: 38, reverb_p2: 60, reverb_p3: 64, reverb_p4: 20, reverb_p5: 50, reverb_p6: 64,
-  // Wah, Cab, Loop
-  wah_p1: 0, wah_p2: 64,
-  cab_p1: 50, cab_p2: 100, cab_p3: 0, cab_p4: 0, cab_p5: 127,
-  fxloop_p1: 100, fxloop_p2: 100, fxloop_p3: 64
-};
-
 const state = {
-  poweredOn: true,
   theme: 'orange',
   midiAccess: null,
   midiOut: null,
   midiIn: null,
-  midiChannel: 0, // 0 = Channel 1
+  midiChannel: 0, // 0 = Ch 1
 
-  // Virtual Rig Cheat Mode: Automatically sends Base HW PC + full CC override burst on Rig/Amp change
-  autoPushRig: true,
-
-  // Rig selection state (Banks A-Z = 0-25, Slots 1-4 = 0-3)
+  // Rig Switcher State
   bankType: 'USER', // 'USER' (CC0=0) or 'FACTORY' (CC0=1)
   bankIndex: 0,     // 0 = A, 1 = B ... 25 = Z
   slotIndex: 0,     // 0..3 -> Rig 1..4
-
-  // Base Hardware Patch (PC) that supplies the underlying DSP models for the active Virtual Rig
-  baseBankType: 'USER',
-  basePC: 0,
-
-  // Custom Rig Names dictionary keyed by e.g. "USER_0" .. "USER_103", "FACTORY_0" .. "FACTORY_103"
   customRigNames: {},
 
-  // Per-slot saved Virtual Rigs keyed by "USER_0" .. "FACTORY_103"
-  slotRigs: {},
-
-  // Active editing focus on the LCD & 6 Soft Knobs
-  activeBlockId: 'amp',
-  activePage: 0,    // 0 = Page 1 (params 0..5), 1 = Page 2 (params 6..11), 2 = Page 3 (params 12..17)
-  selectedAmpId: 'plexi_100',
-  selectedCabId: '4x12_green_25w',
-  selectedMicId: 'dyn_57',
-  micOnAxis: true,
-  selectedFxModels: {
-    wah: 'black_wah',
-    dist: 'green_jrc',
-    fx1: 'para_eq',
-    fx2: 'multi_chorus',
-    mod: 'c1_chorus',
-    delay: 'tape_echo',
-    reverb: 'eleven_sr'
-  },
-  tunerActive: false,
-
-  // CC Mapping table (persisted to localStorage)
-  ccMap: { ...DEFAULT_CC_MAP },
-
-  // Block Active States (true = On/64-127, false = Bypassed/0-63)
-  blockState: {
-    wah: false,
-    dist: true,
-    fx1: false,
-    fx2: false,
+  // Block Bypasses
+  blocks: {
     amp: true,
     cab: true,
-    fxloop: false,
+    dist: true,
     mod: false,
     delay: true,
-    reverb: true
+    reverb: true,
+    fx1: false,
+    fx2: false,
+    fxloop: false,
+    wah: false
   },
 
-  // Continuous Parameter Values (0-127)
-  paramValues: { ...DEFAULT_PARAM_VALUES },
+  // Active Continuous Values (0-127)
+  params: {
+    rig_volume: 102,
+    wah_pedal: 0,
+    exp_pedal: 64,
 
-  // Local Presets / Snapshots
-  presets: {}
+    // Amp
+    amp_p1: 89,   // Gain (7.0)
+    amp_p2: 70,   // Bass (5.5)
+    amp_p3: 76,   // Mid (6.0)
+    amp_p4: 83,   // Treble (6.5)
+    amp_p5: 64,   // Presence (5.0)
+    amp_p6: 95,   // Master (7.5)
+    amp_p11: 102, // Amp Out (8.0)
+    cab_p1: 38,   // Breakup (3.0)
+
+    // Distortion
+    dist_p1: 76,
+    dist_p2: 64,
+    dist_p3: 89,
+
+    // Mod
+    mod_p1: 57,
+    mod_p2: 76,
+    mod_p3: 64,
+    mod_p4: 38,
+
+    // Delay
+    delay_p1: 64,
+    delay_p2: 51,
+    delay_p3: 45,
+    delay_p4: 76,
+
+    // Reverb
+    reverb_p1: 38,
+    reverb_p2: 70,
+    reverb_p3: 76,
+
+    // FX 1
+    fx1_p1: 64,
+    fx1_p2: 64,
+    fx1_p3: 76,
+
+    // FX 2
+    fx2_p1: 64,
+    fx2_p2: 64,
+    fx2_p3: 76,
+
+    // FX Loop
+    fxloop_p3: 64
+  },
+
+  tunerActive: false
 };
 
-let autoPushTimer = null;
-
-function formatSlotCode(bankType, pcNum) {
-  const bankIdx = Math.floor(pcNum / 4);
-  const slotIdx = (pcNum % 4) + 1;
-  const letter = bankType === 'USER'
-    ? String.fromCharCode(65 + bankIdx)
-    : String.fromCharCode(97 + bankIdx);
-  return `${letter}${slotIdx}`;
-}
-
-function getRigSlotKey(bankType, pcNum) {
-  return `${bankType}_${pcNum}`;
-}
-
-function getRigNameForSlot(bankType, pcNum) {
-  const key = getRigSlotKey(bankType, pcNum);
-  return state.customRigNames[key] || getDefaultRigName(bankType, pcNum);
-}
-
-function setRigNameForCurrentSlot(newName) {
-  const pcNum = state.bankIndex * 4 + state.slotIndex;
-  const key = getRigSlotKey(state.bankType, pcNum);
-  state.customRigNames[key] = newName;
-  try {
-    localStorage.setItem('11r_custom_rig_names', JSON.stringify(state.customRigNames));
-  } catch (e) {
-    console.warn('Could not save rig name:', e);
-  }
-}
-
-// Generates a realistic, musical default Virtual Rig for each of the 208 slots (A1-Z4 / a1-z4)
-function getDefaultVirtualRigForSlot(bankType, pcNum) {
-  const ampBySlot = AMP_MODELS.find(m => m.defaultRigPC === (pcNum % AMP_MODELS.length)) || AMP_MODELS[pcNum % AMP_MODELS.length];
-  const cabId = ampBySlot.defaultCabId || '4x12_classic_30';
-  const micId = ampBySlot.defaultMicId || 'dyn_57';
-  const cabIdx = Math.max(0, CAB_MODELS.findIndex(c => c.id === cabId));
-  const micIdx = Math.max(0, MIC_MODELS.findIndex(m => m.id === micId));
-
-  const styleMod = pcNum % 4; // 0: Classic/Plexi, 1: Crunch, 2: Clean/Chime, 3: Lead/High-Gain
-  const blockState = {
-    wah: false,
-    dist: styleMod === 0 || styleMod === 3,
-    fx1: styleMod === 2,
-    fx2: styleMod === 2 || styleMod === 3,
-    amp: true,
-    cab: true,
-    fxloop: false,
-    mod: styleMod === 2,
-    delay: styleMod !== 1,
-    reverb: true
-  };
-
-  const gainByStyle = [86, 78, 48, 106][styleMod];
-  const masterByStyle = [92, 88, 96, 85][styleMod];
-  const delayMixByStyle = [40, 24, 46, 54][styleMod];
-
-  const paramValues = {
-    ...DEFAULT_PARAM_VALUES,
-    amp_p1: gainByStyle,
-    amp_p2: 68 + (pcNum % 5) * 3,
-    amp_p3: 72 + ((pcNum + 2) % 5) * 3,
-    amp_p4: 78 + ((pcNum + 1) % 4) * 3,
-    amp_p5: 66 + (pcNum % 4) * 4,
-    amp_p6: masterByStyle,
-    dist_p1: styleMod === 3 ? 82 : 64,
-    dist_p2: 68,
-    dist_p3: 88,
-    delay_p1: 54 + (pcNum % 6) * 5,
-    delay_p2: 44,
-    delay_p3: delayMixByStyle,
-    reverb_p1: styleMod === 2 ? 52 : 36,
-    reverb_p2: styleMod === 2 ? 72 : 56,
-    cab_p3: Math.round((cabIdx / Math.max(1, CAB_MODELS.length - 1)) * 127),
-    cab_p4: Math.round((micIdx / Math.max(1, MIC_MODELS.length - 1)) * 127),
-    cab_p5: 127
-  };
-
-  return {
-    baseBankType: bankType,
-    basePC: pcNum,
-    selectedAmpId: ampBySlot.id,
-    selectedCabId: cabId,
-    selectedMicId: micId,
-    micOnAxis: true,
-    selectedFxModels: {
-      wah: pcNum % 2 === 0 ? 'black_wah' : 'shine_wah',
-      dist: ['green_jrc', 'white_boost', 'black_op', 'dc_dist'][pcNum % 4],
-      fx1: ['para_eq', 'gray_comp', 'dyn3_comp', 'graphic_eq'][pcNum % 4],
-      fx2: ['multi_chorus', 'para_eq', 'vibe_phaser', 'flanger'][pcNum % 4],
-      mod: ['c1_chorus', 'multi_chorus', 'orange_phaser', 'vibe_phaser', 'roto_speaker'][pcNum % 5],
-      delay: ['tape_echo', 'bbd_delay', 'dyn_delay'][pcNum % 3],
-      reverb: ['eleven_sr', 'black_spring', 'hall_rev', 'room_rev'][pcNum % 4]
-    },
-    blockState,
-    paramValues
-  };
-}
-
-function loadSlotVirtualRig(bankType, pcNum) {
-  const key = getRigSlotKey(bankType, pcNum);
-  const def = getDefaultVirtualRigForSlot(bankType, pcNum);
-  const saved = state.slotRigs[key];
-  const rig = saved ? {
-    ...def,
-    ...saved,
-    selectedFxModels: { ...def.selectedFxModels, ...(saved.selectedFxModels || {}) },
-    blockState: { ...def.blockState, ...(saved.blockState || {}) },
-    paramValues: { ...def.paramValues, ...(saved.paramValues || {}) }
-  } : def;
-
-  state.baseBankType = rig.baseBankType || bankType;
-  state.basePC = typeof rig.basePC === 'number' ? rig.basePC : pcNum;
-  state.selectedAmpId = rig.selectedAmpId || def.selectedAmpId;
-  state.selectedCabId = rig.selectedCabId || def.selectedCabId;
-  state.selectedMicId = rig.selectedMicId || def.selectedMicId;
-  state.micOnAxis = rig.micOnAxis !== undefined ? rig.micOnAxis : true;
-  state.selectedFxModels = { ...rig.selectedFxModels };
-  state.blockState = { ...rig.blockState };
-  state.paramValues = { ...rig.paramValues };
-}
-
-function saveCurrentSlotVirtualRig() {
-  const pcNum = state.bankIndex * 4 + state.slotIndex;
-  const key = getRigSlotKey(state.bankType, pcNum);
-  state.slotRigs[key] = {
-    baseBankType: state.baseBankType,
-    basePC: state.basePC,
-    selectedAmpId: state.selectedAmpId,
-    selectedCabId: state.selectedCabId,
-    selectedMicId: state.selectedMicId,
-    micOnAxis: state.micOnAxis,
-    selectedFxModels: { ...state.selectedFxModels },
-    blockState: { ...state.blockState },
-    paramValues: { ...state.paramValues }
-  };
-  try {
-    localStorage.setItem('11r_slot_rigs_v1', JSON.stringify(state.slotRigs));
-  } catch (e) {
-    console.warn('Could not save slot virtual rig:', e);
-  }
-}
-
 // ============================================================================
-// 5. WEB MIDI ENGINE (TX & LIVE RX)
+// 3. WEB MIDI ENGINE (TX & RX)
 // ============================================================================
 async function initWebMIDI() {
   const statusDot = document.getElementById('midi-status-dot');
@@ -695,19 +169,19 @@ async function initWebMIDI() {
 
   if (!navigator.requestMIDIAccess) {
     statusDot.className = 'status-dot error';
-    statusText.textContent = 'Web MIDI API Not Supported (Use Chrome / Edge)';
-    logMidi('info', 'Browser does not support Web MIDI API. Please open in Chrome or Microsoft Edge on Windows.');
+    statusText.textContent = 'Use Chrome or Edge for Web MIDI';
+    logMidi('info', 'Web MIDI not supported in this browser. Please use Google Chrome or Microsoft Edge.');
     return;
   }
 
   try {
     state.midiAccess = await navigator.requestMIDIAccess({ sysex: false });
-    state.midiAccess.onstatechange = () => populateMidiDevices();
+    state.midiAccess.onstatechange = populateMidiDevices;
     populateMidiDevices();
   } catch (err) {
     statusDot.className = 'status-dot error';
     statusText.textContent = 'MIDI Access Denied';
-    logMidi('info', `Failed to acquire Web MIDI: ${err.message}`);
+    logMidi('info', `Web MIDI request error: ${err.message}`);
   }
 }
 
@@ -719,24 +193,21 @@ function populateMidiDevices() {
   const statusDot = document.getElementById('midi-status-dot');
   const statusText = document.getElementById('midi-status-text');
 
-  const prevOutId = outSelect.value;
-  const prevInId = inSelect.value;
+  const prevOut = outSelect.value;
+  const prevIn = inSelect.value;
 
-  outSelect.innerHTML = '<option value="">-- No MIDI Output (Simulation Mode) --</option>';
-  inSelect.innerHTML = '<option value="">-- Optional MIDI Input --</option>';
+  outSelect.innerHTML = '<option value="">-- No MIDI Output --</option>';
+  inSelect.innerHTML = '<option value="">-- No MIDI Input --</option>';
 
-  let autoSelectedOut = '';
-  let autoSelectedIn = '';
+  let autoOut = '';
+  let autoIn = '';
 
-  for (const output of state.midiAccess.outputs.values()) {
+  for (const out of state.midiAccess.outputs.values()) {
     const opt = document.createElement('option');
-    opt.value = output.id;
-    opt.textContent = output.name || `MIDI Out (${output.id})`;
+    opt.value = out.id;
+    opt.textContent = out.name || `MIDI Out (${out.id})`;
     outSelect.appendChild(opt);
-
-    if (/eleven|avid|digidesign|11r/i.test(output.name)) {
-      autoSelectedOut = output.id;
-    }
+    if (/eleven|avid|digidesign|11r/i.test(out.name)) autoOut = out.id;
   }
 
   for (const input of state.midiAccess.inputs.values()) {
@@ -744,105 +215,89 @@ function populateMidiDevices() {
     opt.value = input.id;
     opt.textContent = input.name || `MIDI In (${input.id})`;
     inSelect.appendChild(opt);
-
-    if (/eleven|avid|digidesign|11r/i.test(input.name)) {
-      autoSelectedIn = input.id;
-    }
+    if (/eleven|avid|digidesign|11r/i.test(input.name)) autoIn = input.id;
   }
 
-  if (prevOutId && state.midiAccess.outputs.has(prevOutId)) {
-    outSelect.value = prevOutId;
-  } else if (autoSelectedOut) {
-    outSelect.value = autoSelectedOut;
-  } else if (state.midiAccess.outputs.size === 1) {
-    outSelect.value = Array.from(state.midiAccess.outputs.keys())[0];
-  }
+  if (prevOut && state.midiAccess.outputs.has(prevOut)) outSelect.value = prevOut;
+  else if (autoOut) outSelect.value = autoOut;
+  else if (state.midiAccess.outputs.size === 1) outSelect.value = Array.from(state.midiAccess.outputs.keys())[0];
 
-  if (prevInId && state.midiAccess.inputs.has(prevInId)) {
-    inSelect.value = prevInId;
-  } else if (autoSelectedIn) {
-    inSelect.value = autoSelectedIn;
-  } else if (state.midiAccess.inputs.size === 1) {
-    inSelect.value = Array.from(state.midiAccess.inputs.keys())[0];
-  }
+  if (prevIn && state.midiAccess.inputs.has(prevIn)) inSelect.value = prevIn;
+  else if (autoIn) inSelect.value = autoIn;
+  else if (state.midiAccess.inputs.size === 1) inSelect.value = Array.from(state.midiAccess.inputs.keys())[0];
 
-  bindSelectedMidiPorts();
+  bindMidiPorts();
 
   if (state.midiOut) {
     statusDot.className = 'status-dot connected';
-    statusText.textContent = `Connected: ${state.midiOut.name}${state.midiIn ? ' (2-Way RX/TX)' : ' (TX Only)'}`;
+    statusText.textContent = `Connected: ${state.midiOut.name}${state.midiIn ? ' (2-Way)' : ''}`;
   } else {
     statusDot.className = 'status-dot';
-    statusText.textContent = state.midiAccess.outputs.size > 0
-      ? 'Select MIDI Out Device'
-      : 'No USB MIDI Devices Found (UI Active)';
+    statusText.textContent = state.midiAccess.outputs.size > 0 ? 'Select MIDI Out' : 'No MIDI Devices Found';
   }
 }
 
-function bindSelectedMidiPorts() {
+function bindMidiPorts() {
   if (!state.midiAccess) return;
   const outId = document.getElementById('midi-out-select').value;
   const inId = document.getElementById('midi-in-select').value;
 
   state.midiOut = outId ? state.midiAccess.outputs.get(outId) : null;
 
-  if (state.midiIn) {
-    state.midiIn.onmidimessage = null;
-  }
+  if (state.midiIn) state.midiIn.onmidimessage = null;
   state.midiIn = inId ? state.midiAccess.inputs.get(inId) : null;
-  if (state.midiIn) {
-    state.midiIn.onmidimessage = handleIncomingMidi;
-  }
+  if (state.midiIn) state.midiIn.onmidimessage = handleIncomingMidi;
 
   const statusDot = document.getElementById('midi-status-dot');
   const statusText = document.getElementById('midi-status-text');
+
   if (state.midiOut) {
     statusDot.className = 'status-dot connected';
-    statusText.textContent = `Connected: ${state.midiOut.name}${state.midiIn ? ' (2-Way RX/TX)' : ' (TX Only)'}`;
-    logMidi('info', `MIDI Ready — OUT: "${state.midiOut.name}" | IN: "${state.midiIn ? state.midiIn.name : 'None'}" (Ch ${state.midiChannel + 1})`);
+    statusText.textContent = `Connected: ${state.midiOut.name}${state.midiIn ? ' (2-Way)' : ''}`;
+    logMidi('info', `MIDI Ready: TX="${state.midiOut.name}" | RX="${state.midiIn ? state.midiIn.name : 'None'}" (Ch ${state.midiChannel + 1})`);
   } else {
     statusDot.className = 'status-dot';
-    statusText.textContent = 'Simulation Mode (No MIDI Out)';
+    statusText.textContent = 'No Output Selected';
   }
 }
 
 function sendMidiCC(ccNumber, value, label = '') {
-  if (!state.poweredOn) return;
   const cc = Math.max(0, Math.min(127, Math.round(Number(ccNumber))));
   const val = Math.max(0, Math.min(127, Math.round(Number(value))));
-  const statusByte = 0xB0 | (state.midiChannel & 0x0F);
+  const status = 0xB0 | (state.midiChannel & 0x0F);
 
   if (state.midiOut) {
     try {
-      state.midiOut.send([statusByte, cc, val]);
+      state.midiOut.send([status, cc, val]);
     } catch (e) {
-      logMidi('info', `MIDI Send Error: ${e.message}`);
+      logMidi('info', `TX Error: ${e.message}`);
     }
   }
 
-  logMidi('tx', `TX [Ch ${state.midiChannel + 1}] CC #${String(cc).padStart(3, ' ')} = ${String(val).padStart(3, ' ')} ${label ? `(${label})` : ''}`);
+  logMidi('tx', `CC #${String(cc).padStart(3, ' ')} = ${String(val).padStart(3, ' ')} ${label ? `(${label})` : ''}`);
 }
 
-function sendMidiPC(pcNumber, bankType = state.bankType, label = '') {
-  if (!state.poweredOn) return;
+function sendMidiPC(pcNumber, bankType = state.bankType) {
   const pc = Math.max(0, Math.min(127, Math.round(Number(pcNumber))));
   const ccStatus = 0xB0 | (state.midiChannel & 0x0F);
   const pcStatus = 0xC0 | (state.midiChannel & 0x0F);
   const bankVal = bankType === 'FACTORY' ? 1 : 0;
-  const bankCC = state.ccMap.bank_select_msb ?? 0;
 
   if (state.midiOut) {
     try {
-      // Eleven Rack Manual: Send Bank Change CC# 0 (0=User, 1=Factory) + CC# 32 for compatibility, followed by PC
-      state.midiOut.send([ccStatus, bankCC, bankVal]);
-      state.midiOut.send([ccStatus, 32, bankVal]);
+      // CC 0 (Bank Select) followed by Program Change
+      state.midiOut.send([ccStatus, CC_MAP.bank_select, bankVal]);
       state.midiOut.send([pcStatus, pc]);
+      // Explicitly lock Rig Input to Guitar (True-Z)
+      state.midiOut.send([ccStatus, CC_MAP.rig_input_guitar, 0]);
     } catch (e) {
-      logMidi('info', `MIDI PC Error: ${e.message}`);
+      logMidi('info', `PC Error: ${e.message}`);
     }
   }
 
-  logMidi('tx', `TX [Ch ${state.midiChannel + 1}] Bank=${bankType}(${bankVal}) -> PC #${String(pc).padStart(3, '0')} ${label}`);
+  const letter = bankType === 'USER' ? String.fromCharCode(65 + state.bankIndex) : String.fromCharCode(97 + state.bankIndex);
+  const slotName = `${letter}${state.slotIndex + 1}`;
+  logMidi('tx', `Bank=${bankType} -> PC #${String(pc).padStart(3, '0')} (${slotName}) | Input: Guitar`);
 }
 
 function handleIncomingMidi(event) {
@@ -852,58 +307,67 @@ function handleIncomingMidi(event) {
   const ch = (status & 0x0F) + 1;
 
   if (cmd === 0xB0) {
-    logMidi('rx', `RX [Ch ${ch}] CC #${String(data1).padStart(3, ' ')} = ${String(data2).padStart(3, ' ')}`);
-    syncIncomingCCToUI(data1, data2);
+    logMidi('rx', `CC #${String(data1).padStart(3, ' ')} = ${String(data2).padStart(3, ' ')} (Ch ${ch})`);
+    syncIncomingCC(data1, data2);
   } else if (cmd === 0xC0) {
-    logMidi('rx', `RX [Ch ${ch}] Program Change #${String(data1).padStart(3, '0')}`);
-    const bankIdx = Math.floor(data1 / 4);
-    const slotIdx = data1 % 4;
-    if (bankIdx >= 0 && bankIdx < 26) {
-      state.bankIndex = bankIdx;
-      state.slotIndex = slotIdx;
-      renderAll();
+    logMidi('rx', `Program Change #${String(data1).padStart(3, '0')} (Ch ${ch})`);
+    const bank = Math.floor(data1 / 4);
+    const slot = data1 % 4;
+    if (bank >= 0 && bank < 26) {
+      state.bankIndex = bank;
+      state.slotIndex = slot;
+      renderRigBar();
     }
   }
 }
 
-function syncIncomingCCToUI(cc, val) {
-  // 1. Bank Select (CC 0 or CC 32)
-  if (cc === (state.ccMap.bank_select_msb ?? 0) || cc === 32) {
+function syncIncomingCC(cc, val) {
+  // 1. Bank Select
+  if (cc === CC_MAP.bank_select) {
     state.bankType = val >= 1 ? 'FACTORY' : 'USER';
-    renderAll();
+    renderRigBar();
     return;
   }
 
-  // 2. Tuner (CC 69)
-  if (cc === state.ccMap.tuner) {
+  // 2. Tuner
+  if (cc === CC_MAP.tuner) {
     state.tunerActive = val >= 64;
-    renderAll();
+    renderTuner();
     return;
   }
 
-  // 3. Check Block Bypasses
+  // 3. Block Bypasses
   let matched = false;
-  for (const block of SIGNAL_BLOCKS) {
-    if (state.ccMap[block.bypassKey] === cc) {
-      state.blockState[block.id] = val >= 64;
-      matched = true;
-    }
+  const bypassMap = {
+    [CC_MAP.bypass_amp]: 'amp',
+    [CC_MAP.bypass_cab]: 'cab',
+    [CC_MAP.bypass_dist]: 'dist',
+    [CC_MAP.bypass_mod]: 'mod',
+    [CC_MAP.bypass_delay]: 'delay',
+    [CC_MAP.bypass_reverb]: 'reverb',
+    [CC_MAP.bypass_fx1]: 'fx1',
+    [CC_MAP.bypass_fx2]: 'fx2',
+    [CC_MAP.bypass_fxloop]: 'fxloop',
+    [CC_MAP.bypass_wah]: 'wah'
+  };
+
+  if (bypassMap[cc]) {
+    const block = bypassMap[cc];
+    state.blocks[block] = val >= 64;
+    renderBypasses();
+    matched = true;
   }
 
-  // 4. Check Continuous Parameters
-  for (const [paramKey, mappedCC] of Object.entries(state.ccMap)) {
-    if (mappedCC === cc && paramKey in state.paramValues) {
-      state.paramValues[paramKey] = val;
-      if (paramKey === 'wah_pedal') state.paramValues.wah_p1 = val;
-      if (paramKey === 'wah_p1') state.paramValues.wah_pedal = val;
-      if (paramKey === 'rig_volume') state.paramValues.amp_p12 = val;
-      if (paramKey === 'amp_p12') state.paramValues.rig_volume = val;
+  // 4. Continuous Parameters
+  for (const [paramKey, mappedCC] of Object.entries(CC_MAP)) {
+    if (mappedCC === cc && paramKey in state.params) {
+      state.params[paramKey] = val;
+      updateKnobDOM(paramKey, val);
+      if (paramKey === 'wah_pedal' || paramKey === 'rig_volume' || paramKey === 'exp_pedal') {
+        renderPedals();
+      }
       matched = true;
     }
-  }
-
-  if (matched) {
-    renderAll();
   }
 }
 
@@ -916,528 +380,159 @@ function logMidi(type, message) {
   item.textContent = `[${time}] ${message}`;
   list.appendChild(item);
 
-  while (list.children.length > 70) {
+  while (list.children.length > 50) {
     list.removeChild(list.firstChild);
   }
   list.scrollTop = list.scrollHeight;
 }
 
 // ============================================================================
-// 6. UI RENDERING & PAGE 1 / PAGE 2 LOGIC
+// 4. UI RENDERING & DIRECT KNOB UPDATES
 // ============================================================================
-function getCurrentAmpModel() {
-  return AMP_MODELS.find(m => m.id === state.selectedAmpId) || AMP_MODELS[0];
-}
-
-function getActiveBlockDef() {
-  return SIGNAL_BLOCKS.find(b => b.id === state.activeBlockId) || SIGNAL_BLOCKS[4];
-}
-
-function getBlockTotalPages(block) {
-  return Math.max(1, Math.ceil(block.params.length / 6));
-}
-
-function getCurrentFxModel(blockId) {
-  const list = BLOCK_EFFECT_MODELS[blockId];
-  if (!list || list.length === 0) return null;
-  const selId = state.selectedFxModels?.[blockId];
-  return list.find(m => m.id === selId) || list[0];
-}
-
-function getActivePageParams() {
-  const block = getActiveBlockDef();
-  const totalPages = getBlockTotalPages(block);
-  if (state.activePage >= totalPages) {
-    state.activePage = 0;
+function formatParamValue(paramKey, val) {
+  if (paramKey === 'delay_p1') {
+    // 50ms - 1000ms
+    const ms = Math.round(50 + (val / 127) * 950);
+    return `${ms}ms`;
   }
-
-  const startIdx = state.activePage * 6;
-  const slice = block.params.slice(startIdx, startIdx + 6);
-
-  if (block.id === 'amp') {
-    const ampModel = getCurrentAmpModel();
-    return slice.map((p, idx) => {
-      const knobName = ampModel.knobs[startIdx + idx] || p.name;
-      return {
-        key: p.key,
-        name: knobName,
-        desc: `${ampModel.name} — ${knobName} (${p.desc})`
-      };
-    });
-  }
-
-  const fxModel = getCurrentFxModel(block.id);
-  if (fxModel && fxModel.knobs) {
-    return slice.map((p, idx) => {
-      const knobName = fxModel.knobs[startIdx + idx] || p.name;
-      return {
-        key: p.key,
-        name: knobName,
-        desc: `${fxModel.name} — ${knobName} (${p.desc})`
-      };
-    });
-  }
-
-  return slice;
+  return ((val / 127) * 10).toFixed(1);
 }
 
-function populateBaseHwDropdown() {
-  const baseSelect = document.getElementById('base-hw-pc-select');
-  if (!baseSelect) return;
-  baseSelect.innerHTML = '';
-  for (let pc = 0; pc < 104; pc++) {
-    const slotCode = formatSlotCode(state.baseBankType, pc);
-    const rigName = getRigNameForSlot(state.baseBankType, pc);
-    const opt = document.createElement('option');
-    opt.value = pc;
-    opt.textContent = `${state.baseBankType === 'FACTORY' ? 'FAC' : 'USR'} ${slotCode}: ${rigName}`;
-    baseSelect.appendChild(opt);
-  }
-  baseSelect.value = state.basePC ?? 0;
-}
-
-function buildInitialDOM() {
-  // Apply saved theme
-  document.body.setAttribute('data-theme', state.theme);
-  document.getElementById('theme-select').value = state.theme;
-
-  // Populate Amp Model Selector
-  const ampSelect = document.getElementById('amp-model-select');
-  ampSelect.innerHTML = '';
-  AMP_MODELS.forEach(model => {
-    const opt = document.createElement('option');
-    opt.value = model.id;
-    opt.textContent = model.name;
-    ampSelect.appendChild(opt);
-  });
-  ampSelect.value = state.selectedAmpId;
-
-  // Populate Cab & Mic Selectors
-  const cabSelect = document.getElementById('cab-model-select');
-  cabSelect.innerHTML = '';
-  CAB_MODELS.forEach(cab => {
-    const opt = document.createElement('option');
-    opt.value = cab.id;
-    opt.textContent = cab.name;
-    cabSelect.appendChild(opt);
-  });
-  cabSelect.value = state.selectedCabId;
-
-  const micSelect = document.getElementById('mic-model-select');
-  micSelect.innerHTML = '';
-  MIC_MODELS.forEach(mic => {
-    const opt = document.createElement('option');
-    opt.value = mic.id;
-    opt.textContent = mic.name;
-    micSelect.appendChild(opt);
-  });
-  micSelect.value = state.selectedMicId;
-
-  // Populate Quick Bank Letter Selector (A-Z)
-  const bankSelect = document.getElementById('quick-bank-letter');
-  bankSelect.innerHTML = '';
-  for (let i = 0; i < 26; i++) {
-    const letter = String.fromCharCode(65 + i);
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = `Bank ${letter}`;
-    bankSelect.appendChild(opt);
-  }
-
-  populateBaseHwDropdown();
-
-  // Build 6 Soft Rotary Encoders Row
-  const encodersRow = document.getElementById('six-encoders-row');
-  encodersRow.innerHTML = '';
-  for (let i = 0; i < 6; i++) {
-    const slot = document.createElement('div');
-    slot.className = 'encoder-slot';
-    slot.id = `encoder-slot-${i}`;
-    slot.innerHTML = `
-      <div class="knob-container" data-encoder-index="${i}">
-        <div class="knob-led-ring" id="encoder-ring-${i}"></div>
-        <div class="knob-body" id="encoder-knob-${i}" tabindex="0">
-          <div class="knob-indicator"></div>
-          <div class="knob-cap"></div>
-        </div>
-      </div>
-      <span class="encoder-slot-label" id="encoder-label-${i}">KNOB ${i + 1}</span>
-    `;
-    encodersRow.appendChild(slot);
-    setupRotaryKnobDrag(slot.querySelector('.knob-body'), i);
-  }
-
-  // Setup Master Volume Knob Drag
-  setupMasterKnobDrag(document.getElementById('knob-rig_volume'));
-
-  // Setup Rig Scroll Wheel
-  setupScrollWheel();
-}
-
-function renderAll() {
-  renderPowerState();
-  renderMasterVolume();
-  renderLCD();
-  renderSixEncoders();
-  renderFXButtons();
-  renderPedals();
-  renderQuickRigSwitcher();
-}
-
-function renderPowerState() {
-  const rack = document.getElementById('rack-unit');
-  const powerBtn = document.getElementById('power-switch');
-  if (state.poweredOn) {
-    rack.classList.remove('powered-off');
-    powerBtn.classList.add('active');
-  } else {
-    rack.classList.add('powered-off');
-    powerBtn.classList.remove('active');
-  }
-}
-
-function updateKnobVisual(ringEl, knobEl, val) {
+function updateKnobDOM(paramKey, val) {
   const norm = Math.max(0, Math.min(1, val / 127));
   const deg = Math.round(norm * 270);
   const rot = -135 + deg;
-  if (ringEl) ringEl.style.setProperty('--knob-deg', `${deg}deg`);
-  if (knobEl) knobEl.style.setProperty('--knob-rot', `${rot}deg`);
+
+  const ring = document.getElementById(`ring-${paramKey}`);
+  const knob = document.getElementById(`knob-${paramKey}`);
+  const readout = document.getElementById(`val-${paramKey}`);
+
+  if (ring) ring.style.setProperty('--knob-deg', `${deg}deg`);
+  if (knob) knob.style.setProperty('--knob-rot', `${rot}deg`);
+  if (readout) readout.textContent = formatParamValue(paramKey, val);
 }
 
-function renderMasterVolume() {
-  const val = state.paramValues.rig_volume ?? 100;
-  const knobEl = document.getElementById('knob-rig_volume');
-  updateKnobVisual(
-    document.getElementById('ring-rig_volume'),
-    knobEl,
-    val
-  );
-  if (knobEl) {
-    knobEl.title = `Master / Rig Volume: ${Math.round((val / 127) * 100)}% (Value: ${val}/127 | MIDI CC #${state.ccMap.rig_volume})`;
+function renderAllKnobs() {
+  for (const [key, val] of Object.entries(state.params)) {
+    updateKnobDOM(key, val);
   }
 }
 
-function renderLCD() {
+function renderBypasses() {
+  // Amp and Cab
+  const ampBtn = document.getElementById('bypass-amp');
+  if (ampBtn) {
+    const on = !!state.blocks.amp;
+    ampBtn.classList.toggle('active', on);
+    ampBtn.querySelector('.btn-text').textContent = on ? 'AMP ENGAGED' : 'AMP BYPASSED';
+  }
+
+  const cabBtn = document.getElementById('bypass-cab');
+  if (cabBtn) {
+    const on = !!state.blocks.cab;
+    cabBtn.classList.toggle('active', on);
+    cabBtn.querySelector('.btn-text').textContent = on ? 'CAB ENGAGED' : 'CAB BYPASSED';
+  }
+
+  // FX Modules
+  const blocks = ['dist', 'mod', 'delay', 'reverb', 'fx1', 'fx2', 'fxloop'];
+  blocks.forEach(b => {
+    const btn = document.getElementById(`bypass-${b}`);
+    if (btn) {
+      const on = !!state.blocks[b];
+      btn.classList.toggle('active', on);
+      btn.querySelector('.btn-text').textContent = on ? 'ON' : 'OFF';
+    }
+  });
+
+  // Wah
+  const wahCard = document.getElementById('card-wah');
+  const wahLed = document.getElementById('wah-toe-led');
+  if (wahCard && wahLed) {
+    const on = !!state.blocks.wah;
+    wahCard.classList.toggle('wah-on', on);
+    wahLed.classList.toggle('on', on);
+  }
+}
+
+function renderRigBar() {
   const letter = state.bankType === 'USER'
     ? String.fromCharCode(65 + state.bankIndex)
     : String.fromCharCode(97 + state.bankIndex);
-  const rigId = `${letter}${state.slotIndex + 1}`;
   const pcNum = state.bankIndex * 4 + state.slotIndex;
-  const currentRigName = getRigNameForSlot(state.bankType, pcNum);
-  const baseCode = formatSlotCode(state.baseBankType, state.basePC);
+  const slotCode = `${letter}${state.slotIndex + 1}`;
 
-  const bankBadgeEl = document.getElementById('lcd-bank-type');
-  const rigIdEl = document.getElementById('lcd-rig-id');
-  bankBadgeEl.textContent = state.bankType;
-  bankBadgeEl.title = `${state.bankType} Bank — Click to toggle User (A-Z) / Factory (a-z) Bank (MIDI CC #${state.ccMap.bank_select_msb ?? 0})`;
-  rigIdEl.textContent = rigId;
-  rigIdEl.title = `Rig Slot ${rigId} (Base HW Patch: ${state.baseBankType} ${baseCode} / PC #${String(state.basePC).padStart(3, '0')})`;
+  document.getElementById('btn-bank-toggle').textContent = state.bankType;
+  document.getElementById('rig-slot-display').textContent = slotCode;
+  document.getElementById('rig-pc-display').textContent = `Program Change #${String(pcNum).padStart(3, '0')}`;
 
-  const rigNameInput = document.getElementById('lcd-rig-name');
-  if (document.activeElement !== rigNameInput) {
-    rigNameInput.value = currentRigName;
+  const nameKey = `${state.bankType}_${pcNum}`;
+  const customName = state.customRigNames[nameKey] || `RIG ${slotCode}`;
+  const input = document.getElementById('rig-name-input');
+  if (document.activeElement !== input) {
+    input.value = customName;
   }
 
-  const blockDef = getActiveBlockDef();
-  document.getElementById('lcd-block-badge').textContent = `${blockDef.short} VIEW`;
-
-  // Contextual Amp, Cab/Mic, or Effect Model Selectors: ONLY show on their respective blocks!
-  const ampContextWrap = document.getElementById('lcd-amp-context-wrap');
-  const cabContextWrap = document.getElementById('lcd-cab-context-wrap');
-  const fxContextWrap = document.getElementById('lcd-fx-context-wrap');
-
-  if (blockDef.id === 'amp' && !state.tunerActive) {
-    ampContextWrap.classList.remove('hidden');
-    document.getElementById('amp-model-select').value = state.selectedAmpId;
-  } else {
-    ampContextWrap.classList.add('hidden');
-  }
-
-  if (blockDef.id === 'cab' && !state.tunerActive) {
-    cabContextWrap.classList.remove('hidden');
-    document.getElementById('cab-model-select').value = state.selectedCabId;
-    document.getElementById('mic-model-select').value = state.selectedMicId;
-    const axisBtn = document.getElementById('btn-mic-axis');
-    axisBtn.textContent = state.micOnAxis ? 'ON-AXIS' : 'OFF-AXIS';
-    axisBtn.title = `Mic Placement: ${state.micOnAxis ? 'On-Axis (Center cone, brighter)' : 'Off-Axis (Edge cone, warmer)'} — Click to toggle`;
-  } else {
-    cabContextWrap.classList.add('hidden');
-  }
-
-  const fxModelsForBlock = BLOCK_EFFECT_MODELS[blockDef.id];
-  if (fxModelsForBlock && !state.tunerActive) {
-    fxContextWrap.classList.remove('hidden');
-    const fxLabel = document.getElementById('fx-model-label');
-    const fxSelect = document.getElementById('fx-model-select');
-    fxLabel.textContent = `${blockDef.short}:`;
-    fxSelect.innerHTML = '';
-    fxModelsForBlock.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m.id;
-      opt.textContent = m.name;
-      fxSelect.appendChild(opt);
-    });
-    fxSelect.value = state.selectedFxModels[blockDef.id] || fxModelsForBlock[0].id;
-  } else if (fxContextWrap) {
-    fxContextWrap.classList.add('hidden');
-  }
-
-  // Signal Chain Bar
-  const chainContainer = document.getElementById('lcd-signal-chain');
-  chainContainer.innerHTML = '';
-  SIGNAL_BLOCKS.forEach(block => {
-    const node = document.createElement('div');
-    const isEnabled = state.blockState[block.id];
-    const isFocused = state.activeBlockId === block.id;
-    const bypassCC = state.ccMap[block.bypassKey];
-    let modelSub = '';
-    if (block.id === 'amp') {
-      modelSub = ` — ${getCurrentAmpModel().name}`;
-    } else if (block.id === 'cab') {
-      const cabObj = CAB_MODELS.find(c => c.id === state.selectedCabId);
-      modelSub = cabObj ? ` — ${cabObj.name}` : '';
-    } else if (BLOCK_EFFECT_MODELS[block.id]) {
-      const fxObj = getCurrentFxModel(block.id);
-      modelSub = fxObj ? ` — ${fxObj.name}` : '';
-    }
-    node.className = `chain-node ${isEnabled ? 'active-block' : 'bypassed'} ${isFocused ? 'selected-focus' : ''}`;
-    node.textContent = block.short;
-    node.title = `${block.title}${modelSub} (${isEnabled ? 'Active' : 'Bypassed'} | MIDI CC #${bypassCC})\nLeft-Click: Edit parameters on the 6 Knobs\nDouble-Click: Toggle On/Off`;
-
-    node.addEventListener('click', () => {
-      state.activeBlockId = block.id;
-      state.activePage = 0;
-      renderAll();
-    });
-
-    node.addEventListener('dblclick', () => {
-      toggleBlockBypass(block.id);
-    });
-
-    chainContainer.appendChild(node);
-  });
-
-  // Active Block Header & Page 1 / Page 2 / Page 3 Indicator
-  const headerTitle = document.getElementById('lcd-active-block-title');
-  const pageInd = document.getElementById('lcd-active-page-indicator');
-  const totalPages = getBlockTotalPages(blockDef);
-
-  if (state.tunerActive) {
-    headerTitle.textContent = 'TUNER ACTIVE — OUTPUT MUTED';
-    pageInd.textContent = 'PRESS TUNER TO EXIT';
-  } else if (blockDef.id === 'amp') {
-    headerTitle.textContent = `AMP [${state.blockState.amp ? 'ON' : 'BYP'}]`;
-    pageInd.textContent = `PAGE ${state.activePage + 1}/${totalPages}`;
-  } else if (blockDef.id === 'cab') {
-    headerTitle.textContent = `CAB [${state.blockState.cab ? 'ON' : 'BYP'}]`;
-    pageInd.textContent = `PAGE ${state.activePage + 1}/${totalPages}`;
-  } else if (BLOCK_EFFECT_MODELS[blockDef.id]) {
-    const statusStr = state.blockState[blockDef.id] ? 'ON' : 'BYP';
-    headerTitle.textContent = `${blockDef.short} [${statusStr}]`;
-    pageInd.textContent = `PAGE ${state.activePage + 1}/${totalPages}`;
-  } else {
-    const statusStr = state.blockState[blockDef.id] ? 'ON' : 'BYP';
-    headerTitle.textContent = `${blockDef.title} [${statusStr}]`;
-    pageInd.textContent = `PAGE ${state.activePage + 1}/${totalPages}`;
-  }
-
-  // Page 1 / Page 2 / Page 3 Buttons state
-  const btnSw1 = document.getElementById('btn-sw1');
-  const btnSw2 = document.getElementById('btn-sw2');
-  const btnSw3 = document.getElementById('btn-sw3');
-  btnSw1.classList.toggle('active', state.activePage === 0);
-  btnSw2.classList.toggle('active', state.activePage === 1);
-  btnSw3.classList.toggle('active', state.activePage === 2);
-  btnSw2.disabled = totalPages < 2;
-  btnSw3.disabled = totalPages < 3;
-
-  // 6 Knobs LCD Readout Columns
-  const readoutGrid = document.getElementById('lcd-knobs-readout');
-  readoutGrid.innerHTML = '';
-  const activeParams = getActivePageParams();
-
-  for (let i = 0; i < 6; i++) {
-    const param = activeParams[i];
-    const cell = document.createElement('div');
-
-    if (param) {
-      const val = state.paramValues[param.key] ?? 64;
-      const pct = Math.round((val / 127) * 100);
-      const tenths = ((val / 127) * 10).toFixed(1);
-      const cc = state.ccMap[param.key] ?? 0;
-      cell.className = 'lcd-knob-cell';
-      cell.title = `${param.desc || param.name}\nValue: ${tenths}/10.0 (${val}/127) | MIDI CC #${cc}`;
-      cell.innerHTML = `
-        <span class="lcd-param-name">${param.name}</span>
-        <div class="lcd-param-bar-wrap">
-          <div class="lcd-param-bar-fill" style="width: ${pct}%"></div>
-        </div>
-        <span class="lcd-param-val">${tenths}</span>
-      `;
-    } else {
-      cell.className = 'lcd-knob-cell unused';
-      cell.title = 'Unused Knob Slot on this Page';
-      cell.innerHTML = `
-        <span class="lcd-param-name">UNUSED</span>
-        <div class="lcd-param-bar-wrap">
-          <div class="lcd-param-bar-fill" style="width: 0%"></div>
-        </div>
-        <span class="lcd-param-val">--</span>
-      `;
-    }
-    readoutGrid.appendChild(cell);
-  }
-}
-
-function renderSixEncoders() {
-  const activeParams = getActivePageParams();
-  for (let i = 0; i < 6; i++) {
-    const param = activeParams[i];
-    const slotEl = document.getElementById(`encoder-slot-${i}`);
-    const ringEl = document.getElementById(`encoder-ring-${i}`);
-    const knobEl = document.getElementById(`encoder-knob-${i}`);
-    const labelEl = document.getElementById(`encoder-label-${i}`);
-
-    if (param) {
-      slotEl.classList.remove('unused-slot');
-      const val = state.paramValues[param.key] ?? 64;
-      const tenths = ((val / 127) * 10).toFixed(1);
-      const cc = state.ccMap[param.key] ?? 0;
-      updateKnobVisual(ringEl, knobEl, val);
-      labelEl.textContent = param.name;
-      slotEl.title = `${param.desc || param.name}\nValue: ${tenths}/10.0 (${val}/127) | MIDI CC #${cc}\nDrag up/down or scroll wheel to adjust • Double-click to center`;
-    } else {
-      slotEl.classList.add('unused-slot');
-      updateKnobVisual(ringEl, knobEl, 0);
-      labelEl.textContent = '---';
-      slotEl.title = 'Unused Knob Slot';
-    }
-  }
-}
-
-function renderFXButtons() {
-  SIGNAL_BLOCKS.forEach(block => {
-    const btn = document.getElementById(`fxbtn-${block.id}`);
-    if (btn) {
-      const isOn = !!state.blockState[block.id];
-      const cc = state.ccMap[block.bypassKey];
-      btn.classList.toggle('active', isOn);
-      btn.title = `${block.title} — ${isOn ? 'ENGAGED (ON)' : 'BYPASSED (OFF)'}\nMIDI CC #${cc} (0-63=Off, 64-127=On)\nLeft-Click: Toggle On/Off & view parameters\nRight-Click: View parameters without toggling`;
-    }
-  });
-
-  const tapBtn = document.getElementById('btn-tap-tempo');
-  if (tapBtn) {
-    tapBtn.title = `Tap Tempo Trigger (MIDI CC #${state.ccMap.tap_tempo})\nClick repeatedly to set tempo for time-based effects`;
-  }
-
-  const tunerBtn = document.getElementById('btn-tuner');
-  if (tunerBtn) {
-    tunerBtn.classList.toggle('active', state.tunerActive);
-    tunerBtn.title = `Chromatic Tuner — ${state.tunerActive ? 'ACTIVE' : 'OFF'} (MIDI CC #${state.ccMap.tuner})`;
+  // 4 Footswitches
+  for (let i = 0; i < 4; i++) {
+    const btn = document.getElementById(`stomp-${i}`);
+    const code = `${letter}${i + 1}`;
+    const p = state.bankIndex * 4 + i;
+    const name = state.customRigNames[`${state.bankType}_${p}`] || `RIG ${code}`;
+    btn.classList.toggle('active', i === state.slotIndex);
+    document.getElementById(`stomp-code-${i}`).textContent = code;
+    document.getElementById(`stomp-label-${i}`).textContent = name;
   }
 }
 
 function renderPedals() {
-  // Wah Pedal (with Proportional Illumination matching Wah Bypass & Sweep!)
-  const wahVal = state.paramValues.wah_pedal ?? 0;
+  // Wah
+  const wahVal = state.params.wah_pedal ?? 0;
   const wahPct = Math.round((wahVal / 127) * 100);
-  const wahIntensity = (wahVal / 127).toFixed(3);
-  const wahEngaged = !!state.blockState.wah;
-  const wahUnit = document.getElementById('pedal-wah-unit');
+  document.getElementById('readout-wah').textContent = `${wahPct}%`;
+  document.getElementById('card-wah').style.setProperty('--pedal-pct', `${wahPct}%`);
 
-  wahUnit.classList.toggle('wah-engaged', wahEngaged);
-  wahUnit.style.setProperty('--wah-intensity', wahIntensity);
-  wahUnit.style.setProperty('--pedal-pct', `${wahPct}%`);
-  wahUnit.title = `Wah Expression Pedal — ${wahEngaged ? 'ENGAGED' : 'BYPASSED'}\nSweep Position: ${wahPct}% (${wahVal}/127 | MIDI CC #${state.ccMap.wah_pedal})\nBypass Switch: MIDI CC #${state.ccMap.bypass_wah}`;
-
-  document.getElementById('slider-wah').value = wahVal;
-  document.getElementById('val-wah').textContent = `${wahPct}%`;
-
-  // Volume Pedal
-  const volVal = state.paramValues.rig_volume ?? 100;
+  // Volume
+  const volVal = state.params.rig_volume ?? 102;
   const volPct = Math.round((volVal / 127) * 100);
-  const volUnit = document.getElementById('pedal-vol-unit');
-  if (volUnit) {
-    volUnit.style.setProperty('--pedal-pct', `${volPct}%`);
-    volUnit.title = `Volume Expression Pedal\nPosition: ${volPct}% (${volVal}/127 | MIDI CC #${state.ccMap.rig_volume})`;
-  }
-  document.getElementById('slider-vol').value = volVal;
-  document.getElementById('val-vol').textContent = `${volPct}%`;
+  document.getElementById('readout-vol').textContent = `${volPct}%`;
+  document.getElementById('card-vol').style.setProperty('--pedal-pct', `${volPct}%`);
 
-  // Multi-FX Expression Pedal
-  const expVal = state.paramValues.exp_pedal ?? 64;
+  // Multi-FX Exp
+  const expVal = state.params.exp_pedal ?? 64;
   const expPct = Math.round((expVal / 127) * 100);
-  const expUnit = document.getElementById('pedal-exp-unit');
-  if (expUnit) {
-    expUnit.style.setProperty('--pedal-pct', `${expPct}%`);
-    expUnit.title = `Multi-FX Expression Pedal\nPosition: ${expPct}% (${expVal}/127 | MIDI CC #${state.ccMap.exp_pedal})`;
-  }
-  document.getElementById('slider-exp').value = expVal;
-  document.getElementById('val-exp').textContent = `${expPct}%`;
+  document.getElementById('readout-exp').textContent = `${expPct}%`;
+  document.getElementById('card-exp').style.setProperty('--pedal-pct', `${expPct}%`);
 }
 
-function renderQuickRigSwitcher() {
-  document.getElementById('quick-bank-letter').value = state.bankIndex;
-  document.getElementById('btn-quick-user').classList.toggle('active', state.bankType === 'USER');
-  document.getElementById('btn-quick-factory').classList.toggle('active', state.bankType === 'FACTORY');
-
-  const autoPushBtn = document.getElementById('btn-auto-push-rig');
-  if (autoPushBtn) {
-    autoPushBtn.classList.toggle('active', state.autoPushRig);
-    autoPushBtn.textContent = `Auto-Push: ${state.autoPushRig ? 'ON' : 'OFF'}`;
+function renderTuner() {
+  const tunerBtn = document.getElementById('btn-tuner');
+  if (tunerBtn) {
+    tunerBtn.classList.toggle('active', state.tunerActive);
   }
-
-  populateBaseHwDropdown();
-
-  const letter = state.bankType === 'USER'
-    ? String.fromCharCode(65 + state.bankIndex)
-    : String.fromCharCode(97 + state.bankIndex);
-
-  const stompBtns = document.querySelectorAll('.rig-stomp-btn');
-  stompBtns.forEach((btn, idx) => {
-    const pc = state.bankIndex * 4 + idx;
-    const slotId = `${letter}${idx + 1}`;
-    const slotRigName = getRigNameForSlot(state.bankType, pc);
-    btn.classList.toggle('active', idx === state.slotIndex);
-    btn.title = `Load Virtual Rig ${slotId}: ${slotRigName}\n${state.autoPushRig ? 'Auto-Push ON: Recalls Base HW Patch (PC) + Pushes all 10 Block Bypasses & all Knob CCs to 11R' : 'Sends Bank Select + Program Change #' + String(pc).padStart(3, '0')}`;
-    document.getElementById(`stomp-label-${idx}`).textContent = slotId;
-    document.getElementById(`stomp-name-${idx}`).textContent = slotRigName;
-  });
 }
 
 // ============================================================================
-// 7. KNOB DRAG, SCROLL WHEEL & BUTTON HANDLERS
+// 5. INTERACTIVE DRAG & INPUT HANDLERS
 // ============================================================================
-function setupRotaryKnobDrag(knobEl, encoderIdx) {
+function setupKnobDrag(knobEl, paramKey) {
   let startY = 0;
   let startVal = 0;
 
-  const updateEncoderParam = (newVal) => {
-    const activeParams = getActivePageParams();
-    const param = activeParams[encoderIdx];
-    if (!param) return;
+  const updateParam = (newVal) => {
+    if (state.params[paramKey] !== newVal) {
+      state.params[paramKey] = newVal;
+      updateKnobDOM(paramKey, newVal);
 
-    if (state.paramValues[param.key] !== newVal) {
-      state.paramValues[param.key] = newVal;
-      if (param.key === 'wah_p1') state.paramValues.wah_pedal = newVal;
-      if (param.key === 'amp_p12') state.paramValues.rig_volume = newVal;
-
-      // Sync Cab Select, Mic Select & Mic Axis knobs with the CAB header dropdowns
-      if (param.key === 'cab_p3') {
-        const cabIdx = Math.min(CAB_MODELS.length - 1, Math.floor((newVal / 128) * CAB_MODELS.length));
-        state.selectedCabId = CAB_MODELS[cabIdx].id;
-      } else if (param.key === 'cab_p4') {
-        const micIdx = Math.min(MIC_MODELS.length - 1, Math.floor((newVal / 128) * MIC_MODELS.length));
-        state.selectedMicId = MIC_MODELS[micIdx].id;
-      } else if (param.key === 'cab_p5') {
-        state.micOnAxis = newVal >= 64;
+      const cc = CC_MAP[paramKey];
+      if (cc !== undefined) {
+        sendMidiCC(cc, newVal, paramKey);
       }
 
-      saveCurrentSlotVirtualRig();
-      const cc = state.ccMap[param.key];
-      sendMidiCC(cc, newVal, param.name);
-      renderAll();
+      if (paramKey === 'rig_volume') {
+        renderPedals();
+      }
+      saveLocalState();
     }
   };
 
@@ -1445,7 +540,7 @@ function setupRotaryKnobDrag(knobEl, encoderIdx) {
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     const deltaY = startY - clientY;
     const newVal = Math.max(0, Math.min(127, Math.round(startVal + deltaY * 0.85)));
-    updateEncoderParam(newVal);
+    updateParam(newVal);
   };
 
   const onUp = () => {
@@ -1457,11 +552,8 @@ function setupRotaryKnobDrag(knobEl, encoderIdx) {
 
   const onDown = (e) => {
     e.preventDefault();
-    const activeParams = getActivePageParams();
-    const param = activeParams[encoderIdx];
-    if (!param) return;
     startY = e.touches ? e.touches[0].clientY : e.clientY;
-    startVal = state.paramValues[param.key] ?? 64;
+    startVal = state.params[paramKey] ?? 64;
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     window.addEventListener('touchmove', onMove);
@@ -1473,852 +565,269 @@ function setupRotaryKnobDrag(knobEl, encoderIdx) {
 
   knobEl.addEventListener('wheel', (e) => {
     e.preventDefault();
-    const activeParams = getActivePageParams();
-    const param = activeParams[encoderIdx];
-    if (!param) return;
-    const step = e.deltaY < 0 ? 2 : -2;
-    const newVal = Math.max(0, Math.min(127, (state.paramValues[param.key] ?? 64) + step));
-    updateEncoderParam(newVal);
+    const step = e.deltaY < 0 ? 3 : -3;
+    const newVal = Math.max(0, Math.min(127, (state.params[paramKey] ?? 64) + step));
+    updateParam(newVal);
   });
 
   knobEl.addEventListener('dblclick', () => {
-    updateEncoderParam(64);
+    updateParam(64);
   });
 }
 
-function setupMasterKnobDrag(knobEl) {
+function setupPedalDrag(treadleEl, paramKey, ccNumber, label) {
   let startY = 0;
   let startVal = 0;
 
-  const updateMaster = (newVal) => {
-    if (state.paramValues.rig_volume !== newVal) {
-      state.paramValues.rig_volume = newVal;
-      state.paramValues.amp_p12 = newVal;
-      saveCurrentSlotVirtualRig();
-      sendMidiCC(state.ccMap.rig_volume, newVal, 'Master/Rig Volume');
-      renderMasterVolume();
+  const updateVal = (newVal) => {
+    if (state.params[paramKey] !== newVal) {
+      state.params[paramKey] = newVal;
       renderPedals();
-      if (state.activeBlockId === 'amp' && state.activePage === 1) {
-        renderLCD();
-        renderSixEncoders();
+      sendMidiCC(ccNumber, newVal, label);
+      if (paramKey === 'rig_volume') {
+        updateKnobDOM('rig_volume', newVal);
       }
+      saveLocalState();
     }
   };
 
   const onMove = (e) => {
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    // Dragging UP increases value (startY - clientY > 0), dragging DOWN decreases value
     const deltaY = startY - clientY;
-    const newVal = Math.max(0, Math.min(127, Math.round(startVal + deltaY * 0.85)));
-    updateMaster(newVal);
+    const newVal = Math.max(0, Math.min(127, Math.round(startVal + deltaY * 1.5)));
+    updateVal(newVal);
   };
 
   const onUp = () => {
     window.removeEventListener('mousemove', onMove);
     window.removeEventListener('mouseup', onUp);
+    window.removeEventListener('touchmove', onMove);
+    window.removeEventListener('touchend', onUp);
   };
 
-  knobEl.addEventListener('mousedown', (e) => {
+  const onDown = (e) => {
     e.preventDefault();
-    startY = e.clientY;
-    startVal = state.paramValues.rig_volume ?? 100;
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    startVal = state.params[paramKey] ?? 0;
+
+    // Optional direct click-jump based on vertical position in the treadle box
+    const rect = treadleEl.getBoundingClientRect();
+    const clickRatio = Math.max(0, Math.min(1, (rect.bottom - startY) / rect.height));
+    const clickVal = Math.round(clickRatio * 127);
+    updateVal(clickVal);
+    startVal = clickVal;
+
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
-  });
+    window.addEventListener('touchmove', onMove);
+    window.addEventListener('touchend', onUp);
+  };
 
-  knobEl.addEventListener('wheel', (e) => {
+  treadleEl.addEventListener('mousedown', onDown);
+  treadleEl.addEventListener('touchstart', onDown, { passive: false });
+
+  treadleEl.addEventListener('wheel', (e) => {
     e.preventDefault();
-    const step = e.deltaY < 0 ? 3 : -3;
-    const newVal = Math.max(0, Math.min(127, (state.paramValues.rig_volume ?? 100) + step));
-    updateMaster(newVal);
+    const step = e.deltaY < 0 ? 4 : -4;
+    const newVal = Math.max(0, Math.min(127, (state.params[paramKey] ?? 0) + step));
+    updateVal(newVal);
   });
 }
 
-function setupScrollWheel() {
-  const wheel = document.getElementById('rig-scroll-wheel');
-  wheel.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    stepRig(e.deltaY < 0 ? 1 : -1);
-  });
-
-  let startY = 0;
-  const onMove = (e) => {
-    const dy = startY - e.clientY;
-    if (Math.abs(dy) >= 18) {
-      stepRig(dy > 0 ? 1 : -1);
-      startY = e.clientY;
-    }
-  };
-  const onUp = () => {
-    window.removeEventListener('mousemove', onMove);
-    window.removeEventListener('mouseup', onUp);
-  };
-  wheel.addEventListener('mousedown', (e) => {
-    e.preventDefault();
-    startY = e.clientY;
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-  });
+function selectRigSlot(slotIdx) {
+  state.slotIndex = slotIdx;
+  const pc = state.bankIndex * 4 + state.slotIndex;
+  sendMidiPC(pc, state.bankType);
+  renderRigBar();
 }
 
-function selectRigByPC(pcIndex) {
-  let clamped = pcIndex;
-  if (clamped < 0) clamped = 103;
-  if (clamped > 103) clamped = 0;
+function stepBank(delta) {
+  let newBank = state.bankIndex + delta;
+  if (newBank < 0) newBank = 25;
+  if (newBank > 25) newBank = 0;
+  state.bankIndex = newBank;
+  const pc = state.bankIndex * 4 + state.slotIndex;
+  sendMidiPC(pc, state.bankType);
+  renderRigBar();
+}
 
-  state.bankIndex = Math.floor(clamped / 4);
-  state.slotIndex = clamped % 4;
+function toggleBypass(block) {
+  state.blocks[block] = !state.blocks[block];
+  const isOn = state.blocks[block];
+  const bypassCCMap = {
+    amp: CC_MAP.bypass_amp,
+    cab: CC_MAP.bypass_cab,
+    dist: CC_MAP.bypass_dist,
+    mod: CC_MAP.bypass_mod,
+    delay: CC_MAP.bypass_delay,
+    reverb: CC_MAP.bypass_reverb,
+    fx1: CC_MAP.bypass_fx1,
+    fx2: CC_MAP.bypass_fx2,
+    fxloop: CC_MAP.bypass_fxloop,
+    wah: CC_MAP.bypass_wah
+  };
 
-  // Load this slot's saved Virtual Rig (Amp, Cab, Mic, FX models, Bypasses, Knobs & Base HW Slot)
-  loadSlotVirtualRig(state.bankType, clamped);
-  renderAll();
-
-  if (state.autoPushRig) {
-    sendFullVirtualRigToHardware(true);
-  } else {
-    const slotCode = formatSlotCode(state.bankType, clamped);
-    const rigName = getRigNameForSlot(state.bankType, clamped);
-    sendMidiPC(clamped, state.bankType, `[${slotCode}: ${rigName}]`);
+  const cc = bypassCCMap[block];
+  if (cc !== undefined) {
+    sendMidiCC(cc, isOn ? 127 : 0, `${block.toUpperCase()} ${isOn ? 'ON' : 'OFF'}`);
   }
+
+  renderBypasses();
+  saveLocalState();
 }
 
-function stepRig(delta) {
-  const totalIndex = state.bankIndex * 4 + state.slotIndex + delta;
-  selectRigByPC(totalIndex);
+function pushAllKnobs() {
+  logMidi('info', 'Pushing all visible live knobs to Eleven Rack...');
+  for (const [key, val] of Object.entries(state.params)) {
+    const cc = CC_MAP[key];
+    if (cc !== undefined && cc !== CC_MAP.rig_input_guitar) {
+      sendMidiCC(cc, val, key);
+    }
+  }
+  // Ensure guitar input
+  sendMidiCC(CC_MAP.rig_input_guitar, 0, 'Guitar Input Lock');
 }
 
-function toggleBlockBypass(blockId) {
-  const block = SIGNAL_BLOCKS.find(b => b.id === blockId);
-  if (!block) return;
-
-  state.blockState[blockId] = !state.blockState[blockId];
-  saveCurrentSlotVirtualRig();
-  const isOn = state.blockState[blockId];
-  const cc = state.ccMap[block.bypassKey];
-  sendMidiCC(cc, isOn ? 127 : 0, `${block.short} ${isOn ? 'ON' : 'OFF'}`);
-
-  state.activeBlockId = blockId;
-  state.activePage = 0;
-  renderAll();
+function resetIO() {
+  sendMidiCC(CC_MAP.rig_input_guitar, 0, 'Force Guitar True-Z Input');
+  sendMidiCC(CC_MAP.wah_pedal, 0, 'Reset Wah Sweep');
+  sendMidiCC(CC_MAP.bypass_wah, 0, 'Wah Bypass');
+  state.blocks.wah = false;
+  state.params.wah_pedal = 0;
+  renderBypasses();
+  renderPedals();
+  logMidi('info', 'Reset I/O: Locked to Guitar (True-Z) input & bypassed Wah.');
 }
 
-// Low-level silent CC sender used during full-rig bursts so we don't flood the 70-line MIDI log
-function transmitRawCC(ccNumber, value) {
-  if (!state.poweredOn || !state.midiOut) return;
-  const cc = Math.max(0, Math.min(127, Math.round(Number(ccNumber))));
-  const val = Math.max(0, Math.min(127, Math.round(Number(value))));
-  const statusByte = 0xB0 | (state.midiChannel & 0x0F);
+// ============================================================================
+// 6. PERSISTENCE & INITIALIZATION
+// ============================================================================
+function saveLocalState() {
   try {
-    state.midiOut.send([statusByte, cc, val]);
+    localStorage.setItem('11r_live_theme', state.theme);
+    localStorage.setItem('11r_live_rignames', JSON.stringify(state.customRigNames));
+    localStorage.setItem('11r_live_params', JSON.stringify(state.params));
+    localStorage.setItem('11r_live_blocks', JSON.stringify(state.blocks));
   } catch (_) {}
 }
 
-/**
- * Cheat #1 Engine: Sends the linked Base Hardware Rig (Bank + PC) to load the underlying DSP models,
- * waits 85ms for the Eleven Rack DSP to settle, and then blasts all continuous parameters across EVERY block
- * followed by all 10 Block Bypasses and Master Volume!
- */
-function sendFullVirtualRigToHardware(includeBasePC = true) {
-  if (!state.poweredOn) return;
-  if (autoPushTimer) {
-    clearTimeout(autoPushTimer);
-    autoPushTimer = null;
-  }
-
-  const currentPC = state.bankIndex * 4 + state.slotIndex;
-  const currentSlotCode = formatSlotCode(state.bankType, currentPC);
-  const rigName = getRigNameForSlot(state.bankType, currentPC);
-  const baseCode = formatSlotCode(state.baseBankType, state.basePC);
-  const ampModel = getCurrentAmpModel();
-
-  if (includeBasePC) {
-    sendMidiPC(
-      state.basePC,
-      state.baseBankType,
-      `[Base HW: ${state.baseBankType} ${baseCode} for "${rigName}" (${ampModel.name})]`
-    );
-  }
-
-  const executeParameterAndBypassBurst = () => {
-    let paramCount = 0;
-    // 1. Send all continuous parameter CCs across all 10 blocks first
-    // (Guard against CC 65, 66, 67 which toggle Eleven Rack Rig Input away from Guitar!)
-    SIGNAL_BLOCKS.forEach(block => {
-      block.params.forEach(p => {
-        const cc = state.ccMap[p.key];
-        const val = state.paramValues[p.key] ?? 64;
-        if (cc !== undefined && cc !== 65 && cc !== 66 && cc !== 67) {
-          transmitRawCC(cc, val);
-          paramCount++;
-        }
-      });
-    });
-
-    // 2. Send all 10 Block Bypass CCs AFTER parameters so bypass states always win
-    const activeBlocks = [];
-    const bypassedBlocks = [];
-    SIGNAL_BLOCKS.forEach(block => {
-      const isOn = !!state.blockState[block.id];
-      const bypassCC = state.ccMap[block.bypassKey];
-      transmitRawCC(bypassCC, isOn ? 127 : 0);
-      if (isOn) activeBlocks.push(block.short);
-      else bypassedBlocks.push(block.short);
-    });
-
-    // 3. Send Master / Rig Volume & Expression Pedals
-    transmitRawCC(state.ccMap.rig_volume, state.paramValues.rig_volume ?? 100);
-    transmitRawCC(state.ccMap.wah_pedal, state.paramValues.wah_pedal ?? 0);
-    transmitRawCC(state.ccMap.exp_pedal, state.paramValues.exp_pedal ?? 64);
-
-    // 4. Explicitly lock Rig Input to Guitar (True-Z) (CC #65 = 0 forces Guitar Input)
-    transmitRawCC(state.ccMap.rig_input_guitar ?? 65, 0);
-
-    logMidi(
-      'tx',
-      `TX [Ch ${state.midiChannel + 1}] FULL RIG OVERRIDE (${currentSlotCode}: "${rigName}") -> Input=GUITAR | ON:[${activeBlocks.join(',')}] | OFF:[${bypassedBlocks.join(',')}] + ${paramCount} Knob CCs`
-    );
-  };
-
-  if (includeBasePC) {
-    autoPushTimer = setTimeout(executeParameterAndBypassBurst, 85);
-  } else {
-    executeParameterAndBypassBurst();
-  }
-}
-
-function pushEntireRigToHardware() {
-  sendFullVirtualRigToHardware(true);
-}
-
-// ============================================================================
-// 8. CC MAPPING MODAL & LOCAL STORAGE PERSISTENCE
-// ============================================================================
-function loadSavedState() {
+function loadLocalState() {
   try {
-    const savedTheme = localStorage.getItem('11r_theme');
+    const savedTheme = localStorage.getItem('11r_live_theme');
     if (savedTheme) {
       state.theme = savedTheme;
+      document.body.setAttribute('data-theme', state.theme);
+      document.getElementById('theme-select').value = state.theme;
     }
-    const savedAutoPush = localStorage.getItem('11r_auto_push');
-    if (savedAutoPush !== null) {
-      state.autoPushRig = savedAutoPush === 'true';
-    }
-    const savedCC = localStorage.getItem('11r_cc_map_v4');
-    if (savedCC) {
-      state.ccMap = { ...DEFAULT_CC_MAP, ...JSON.parse(savedCC) };
-    }
-    const savedRigNames = localStorage.getItem('11r_custom_rig_names');
-    if (savedRigNames) {
-      state.customRigNames = JSON.parse(savedRigNames);
-    }
-    const savedSlotRigs = localStorage.getItem('11r_slot_rigs_v1');
-    if (savedSlotRigs) {
-      state.slotRigs = JSON.parse(savedSlotRigs);
-    }
-    const savedPresets = localStorage.getItem('11r_presets_v2');
-    if (savedPresets) {
-      state.presets = JSON.parse(savedPresets);
-    } else {
-      state.presets = {
-        'Big Blue Plexi Lead (A1)': {
-          baseBankType: 'USER',
-          basePC: 0,
-          selectedAmpId: 'plexi_100',
-          selectedCabId: '4x12_green_25w',
-          selectedMicId: 'dyn_57',
-          selectedFxModels: { wah: 'black_wah', dist: 'green_jrc', fx1: 'para_eq', fx2: 'multi_chorus', mod: 'c1_chorus', delay: 'tape_echo', reverb: 'eleven_sr' },
-          blockState: { wah: false, dist: true, fx1: false, fx2: false, amp: true, cab: true, fxloop: false, mod: false, delay: true, reverb: true },
-          paramValues: { ...DEFAULT_PARAM_VALUES, amp_p1: 95, amp_p2: 70, amp_p3: 82, amp_p4: 88, amp_p5: 76, amp_p6: 92 }
-        },
-        'Blackface Clean Chime (A3)': {
-          baseBankType: 'USER',
-          basePC: 2,
-          selectedAmpId: 'black_lux',
-          selectedCabId: '1x12_black_lux',
-          selectedMicId: 'cond_67',
-          selectedFxModels: { wah: 'shine_wah', dist: 'white_boost', fx1: 'gray_comp', fx2: 'multi_chorus', mod: 'c1_chorus', delay: 'bbd_delay', reverb: 'black_spring' },
-          blockState: { wah: false, dist: false, fx1: true, fx2: false, amp: true, cab: true, fxloop: false, mod: true, delay: true, reverb: true },
-          paramValues: { ...DEFAULT_PARAM_VALUES, amp_p1: 48, amp_p2: 72, amp_p3: 64, amp_p4: 84, amp_p5: 40, amp_p6: 85 }
-        },
-        'Bogner Red XTC High-Gain (B3)': {
-          baseBankType: 'USER',
-          basePC: 6,
-          selectedAmpId: 'rb_01b',
-          selectedCabId: '2x12_b30',
-          selectedMicId: 'rib_121',
-          selectedFxModels: { wah: 'black_wah', dist: 'green_jrc', fx1: 'para_eq', fx2: 'para_eq', mod: 'orange_phaser', delay: 'dyn_delay', reverb: 'hall_rev' },
-          blockState: { wah: true, dist: true, fx1: true, fx2: false, amp: true, cab: true, fxloop: false, mod: false, delay: true, reverb: false },
-          paramValues: { ...DEFAULT_PARAM_VALUES, amp_p1: 108, amp_p2: 86, amp_p3: 62, amp_p4: 90, amp_p5: 80, amp_p6: 88 }
-        }
-      };
-    }
-  } catch (e) {
-    console.warn('Could not load local state:', e);
-  }
-  loadSlotVirtualRig(state.bankType, state.bankIndex * 4 + state.slotIndex);
-  refreshPresetDropdown();
+
+    const savedNames = localStorage.getItem('11r_live_rignames');
+    if (savedNames) state.customRigNames = JSON.parse(savedNames);
+
+    const savedParams = localStorage.getItem('11r_live_params');
+    if (savedParams) state.params = { ...state.params, ...JSON.parse(savedParams) };
+
+    const savedBlocks = localStorage.getItem('11r_live_blocks');
+    if (savedBlocks) state.blocks = { ...state.blocks, ...JSON.parse(savedBlocks) };
+  } catch (_) {}
 }
 
-function refreshPresetDropdown() {
-  const sel = document.getElementById('preset-list-select');
-  sel.innerHTML = '<option value="">-- Load Saved Rig --</option>';
-  Object.keys(state.presets).forEach(name => {
-    const opt = document.createElement('option');
-    opt.value = name;
-    opt.textContent = name;
-    sel.appendChild(opt);
-  });
-}
-
-function openCCModal() {
-  const container = document.getElementById('cc-config-container');
-  container.innerHTML = '';
-
-  const groups = [
-    {
-      title: 'Global, Pedals & Utility',
-      items: [
-        { key: 'wah_pedal', label: 'Wah Pedal Sweep' },
-        { key: 'rig_volume', label: 'Volume Pedal / Master' },
-        { key: 'exp_pedal', label: 'Multi-FX Expression' },
-        { key: 'tap_tempo', label: 'Tap Tempo Trigger' },
-        { key: 'tuner', label: 'Tuner On/Off' },
-        { key: 'bank_select_msb', label: 'Bank Select (User/Fac)' }
-      ]
-    },
-    {
-      title: 'Effect Block Bypasses',
-      items: [
-        { key: 'bypass_dist', label: 'Distortion Bypass' },
-        { key: 'bypass_fx1', label: 'FX 1 Bypass' },
-        { key: 'bypass_fx2', label: 'FX 2 Bypass' },
-        { key: 'bypass_amp', label: 'Global Amp Bypass (111)' },
-        { key: 'bypass_cab', label: 'Cab / Mic Bypass (92)' },
-        { key: 'bypass_fxloop', label: 'FX Loop Bypass' },
-        { key: 'bypass_mod', label: 'Modulation Bypass' },
-        { key: 'bypass_delay', label: 'Delay Bypass' },
-        { key: 'bypass_reverb', label: 'Reverb Bypass' },
-        { key: 'bypass_wah', label: 'Wah Bypass' }
-      ]
-    },
-    {
-      title: 'Amp Settings 1–10 (Table 12)',
-      items: [
-        { key: 'amp_p1', label: 'Amp Setting 1 (Gain/Vol)' },
-        { key: 'amp_p2', label: 'Amp Setting 2 (Bass)' },
-        { key: 'amp_p3', label: 'Amp Setting 3 (Mid)' },
-        { key: 'amp_p4', label: 'Amp Setting 4 (Treble)' },
-        { key: 'amp_p5', label: 'Amp Setting 5 (Presence)' },
-        { key: 'amp_p6', label: 'Amp Setting 6 (Master)' },
-        { key: 'amp_p7', label: 'Amp Setting 7 (Page 2)' },
-        { key: 'amp_p8', label: 'Amp Setting 8 (Page 2)' },
-        { key: 'amp_p9', label: 'Amp Setting 9 (Page 2)' },
-        { key: 'amp_p10', label: 'Amp Setting 10 (Page 2)' }
-      ]
-    },
-    {
-      title: 'Distortion & Modulation (Table 12)',
-      items: [
-        { key: 'dist_p1', label: 'Distortion Setting 1' },
-        { key: 'dist_p2', label: 'Distortion Setting 2' },
-        { key: 'dist_p3', label: 'Distortion Setting 3' },
-        { key: 'dist_p4', label: 'Distortion Setting 4' },
-        { key: 'mod_p1', label: 'Modulation Setting 1' },
-        { key: 'mod_p2', label: 'Modulation Setting 2' },
-        { key: 'mod_p3', label: 'Modulation Setting 3' },
-        { key: 'mod_p4', label: 'Modulation Setting 4' }
-      ]
-    },
-    {
-      title: 'Delay & Reverb (Table 12)',
-      items: [
-        { key: 'delay_p1', label: 'Delay Setting 1 (Time)' },
-        { key: 'delay_p2', label: 'Delay Setting 2 (Fdbk)' },
-        { key: 'delay_p3', label: 'Delay Setting 3 (Mix)' },
-        { key: 'delay_p4', label: 'Delay Setting 4' },
-        { key: 'reverb_p1', label: 'Reverb Setting 1 (Mix)' },
-        { key: 'reverb_p2', label: 'Reverb Setting 2 (Decay)' },
-        { key: 'reverb_p3', label: 'Reverb Setting 3 (Tone)' },
-        { key: 'reverb_p4', label: 'Reverb Setting 4 (PreDly)' }
-      ]
-    },
-    {
-      title: 'FX 1 & FX 2 (Table 12)',
-      items: [
-        { key: 'fx1_p1', label: 'FX 1 Setting 1' },
-        { key: 'fx1_p2', label: 'FX 1 Setting 2' },
-        { key: 'fx1_p3', label: 'FX 1 Setting 3' },
-        { key: 'fx1_p4', label: 'FX 1 Setting 4' },
-        { key: 'fx2_p1', label: 'FX 2 Setting 1' },
-        { key: 'fx2_p2', label: 'FX 2 Setting 2' },
-        { key: 'fx2_p3', label: 'FX 2 Setting 3' },
-        { key: 'fx2_p4', label: 'FX 2 Setting 4' }
-      ]
-    }
-  ];
-
-  groups.forEach(group => {
-    const box = document.createElement('div');
-    box.className = 'cc-group-box';
-    box.innerHTML = `<h4>${group.title}</h4>`;
-    group.items.forEach(item => {
-      const row = document.createElement('div');
-      row.className = 'cc-row';
-      row.innerHTML = `
-        <span>${item.label}</span>
-        <input type="number" min="0" max="127" data-cc-key="${item.key}" value="${state.ccMap[item.key] ?? 0}" />
-      `;
-      box.appendChild(row);
-    });
-    container.appendChild(box);
-  });
-
-  document.getElementById('cc-modal-backdrop').classList.remove('hidden');
-}
-
-// ============================================================================
-// 9. EVENT LISTENERS INITIALIZATION
-// ============================================================================
 window.addEventListener('DOMContentLoaded', () => {
-  loadSavedState();
-  buildInitialDOM();
-  renderAll();
-  initWebMIDI();
+  loadLocalState();
 
-  // Theme Switcher
-  document.getElementById('theme-select').addEventListener('change', (e) => {
-    state.theme = e.target.value;
-    document.body.setAttribute('data-theme', state.theme);
-    try {
-      localStorage.setItem('11r_theme', state.theme);
-    } catch (_) {}
-  });
-
-  // MIDI Selectors
-  document.getElementById('midi-out-select').addEventListener('change', bindSelectedMidiPorts);
-  document.getElementById('midi-in-select').addEventListener('change', bindSelectedMidiPorts);
-  document.getElementById('midi-channel-select').addEventListener('change', (e) => {
-    state.midiChannel = parseInt(e.target.value, 10) || 0;
-    logMidi('info', `Set MIDI Channel to ${state.midiChannel + 1}`);
-  });
-  document.getElementById('btn-refresh-midi').addEventListener('click', populateMidiDevices);
-
-  // Power Switch
-  document.getElementById('power-switch').addEventListener('click', () => {
-    state.poweredOn = !state.poweredOn;
-    renderPowerState();
-  });
-
-  // Contextual Amp Model Selector (inside AMP LCD view)
-  // Cheat #1: Selecting an Amp links its Base Hardware Rig PC and pushes your current Virtual Rig on top of it!
-  document.getElementById('amp-model-select').addEventListener('change', (e) => {
-    state.selectedAmpId = e.target.value;
-    const amp = getCurrentAmpModel();
-    state.basePC = amp.defaultRigPC ?? state.basePC;
-    if (amp.defaultCabId) {
-      state.selectedCabId = amp.defaultCabId;
-      const cabIdx = Math.max(0, CAB_MODELS.findIndex(c => c.id === state.selectedCabId));
-      state.paramValues.cab_p3 = Math.round((cabIdx / Math.max(1, CAB_MODELS.length - 1)) * 127);
-    }
-    if (amp.defaultMicId) {
-      state.selectedMicId = amp.defaultMicId;
-      const micIdx = Math.max(0, MIC_MODELS.findIndex(m => m.id === state.selectedMicId));
-      state.paramValues.cab_p4 = Math.round((micIdx / Math.max(1, MIC_MODELS.length - 1)) * 127);
-    }
-    state.activeBlockId = 'amp';
-    saveCurrentSlotVirtualRig();
-    renderAll();
-
-    if (state.autoPushRig) {
-      sendFullVirtualRigToHardware(true);
-    } else {
-      logMidi('info', `Selected Amp "${amp.name}" (Base HW PC #${String(state.basePC).padStart(3, '0')}). Click "SYNC AMP ➔" or "SEND RIG" to push to hardware.`);
+  // Setup all knobs drag
+  document.querySelectorAll('.knob-body, .sm-knob-body').forEach(knob => {
+    const cell = knob.closest('[data-param]');
+    if (cell) {
+      const paramKey = cell.getAttribute('data-param');
+      setupKnobDrag(knob, paramKey);
     }
   });
 
-  // "SYNC AMP ➔" Button next to Amp Model Selector
-  document.getElementById('btn-jump-amp-rig').addEventListener('click', () => {
-    const amp = getCurrentAmpModel();
-    state.basePC = amp.defaultRigPC ?? state.basePC;
-    saveCurrentSlotVirtualRig();
-    renderAll();
-    sendFullVirtualRigToHardware(true);
+  // Setup Bypass Buttons
+  document.querySelectorAll('[data-block]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const block = btn.getAttribute('data-block');
+      toggleBypass(block);
+    });
   });
 
-  // Contextual Effect Model Selector (inside WAH, DIST, FX1, FX2, MOD, DELAY, REVERB views)
-  document.getElementById('fx-model-select').addEventListener('change', (e) => {
-    const blockId = state.activeBlockId;
-    if (BLOCK_EFFECT_MODELS[blockId]) {
-      state.selectedFxModels[blockId] = e.target.value;
-      saveCurrentSlotVirtualRig();
-      renderAll();
-      const fxObj = getCurrentFxModel(blockId);
-      logMidi('info', `Set ${blockId.toUpperCase()} model to "${fxObj ? fxObj.name : e.target.value}" for this Virtual Rig.`);
-      if (state.autoPushRig) {
-        sendFullVirtualRigToHardware(false);
-      }
-    }
+  // Wah Pedal Engage Button
+  document.getElementById('btn-wah-engage').addEventListener('click', () => {
+    toggleBypass('wah');
   });
 
-  // Contextual Cab & Mic Selectors (inside CAB LCD view)
-  document.getElementById('cab-model-select').addEventListener('change', (e) => {
-    state.selectedCabId = e.target.value;
-    const cabIdx = CAB_MODELS.findIndex(c => c.id === state.selectedCabId);
-    const val = Math.round((cabIdx / Math.max(1, CAB_MODELS.length - 1)) * 127);
-    state.paramValues.cab_p3 = val;
-    saveCurrentSlotVirtualRig();
-    sendMidiCC(state.ccMap.cab_p3, val, `Cab: ${CAB_MODELS[cabIdx]?.name || ''}`);
-    renderAll();
-  });
+  // Setup Expression Pedals (Up/Down Drag & Mouse Wheel)
+  setupPedalDrag(document.getElementById('treadle-area-wah'), 'wah_pedal', CC_MAP.wah_pedal, 'Wah Sweep');
+  setupPedalDrag(document.getElementById('treadle-area-vol'), 'rig_volume', CC_MAP.rig_volume, 'Rig Volume');
+  setupPedalDrag(document.getElementById('treadle-area-exp'), 'exp_pedal', CC_MAP.exp_pedal, 'Multi-FX Sweep');
 
-  document.getElementById('mic-model-select').addEventListener('change', (e) => {
-    state.selectedMicId = e.target.value;
-    const micIdx = MIC_MODELS.findIndex(m => m.id === state.selectedMicId);
-    const val = Math.round((micIdx / Math.max(1, MIC_MODELS.length - 1)) * 127);
-    state.paramValues.cab_p4 = val;
-    saveCurrentSlotVirtualRig();
-    sendMidiCC(state.ccMap.cab_p4, val, `Mic: ${MIC_MODELS[micIdx]?.name || ''}`);
-    renderAll();
-  });
+  // Rig Switcher Buttons
+  for (let i = 0; i < 4; i++) {
+    document.getElementById(`stomp-${i}`).addEventListener('click', () => {
+      selectRigSlot(i);
+    });
+  }
 
-  document.getElementById('btn-mic-axis').addEventListener('click', () => {
-    state.micOnAxis = !state.micOnAxis;
-    const val = state.micOnAxis ? 127 : 0;
-    state.paramValues.cab_p5 = val;
-    saveCurrentSlotVirtualRig();
-    sendMidiCC(state.ccMap.cab_p5, val, `Mic Axis: ${state.micOnAxis ? 'ON-AXIS' : 'OFF-AXIS'}`);
-    renderAll();
-  });
+  document.getElementById('btn-bank-prev').addEventListener('click', () => stepBank(-1));
+  document.getElementById('btn-bank-next').addEventListener('click', () => stepBank(1));
 
-  // Prominent Editable Rig Name Input (Auto-saves per slot!)
-  const rigNameInput = document.getElementById('lcd-rig-name');
-  rigNameInput.addEventListener('input', (e) => {
-    setRigNameForCurrentSlot(e.target.value.toUpperCase());
-    renderQuickRigSwitcher();
-  });
-
-  // Left Nav Buttons
-  document.getElementById('btn-view-mode').addEventListener('click', () => {
-    const idx = SIGNAL_BLOCKS.findIndex(b => b.id === state.activeBlockId);
-    const nextIdx = (idx + 1) % SIGNAL_BLOCKS.length;
-    state.activeBlockId = SIGNAL_BLOCKS[nextIdx].id;
-    state.activePage = 0;
-    renderAll();
-  });
-
-  document.getElementById('btn-sync-rig').addEventListener('click', () => {
-    sendFullVirtualRigToHardware(true);
-  });
-
-  document.getElementById('btn-sw1').addEventListener('click', () => {
-    state.activePage = 0;
-    renderAll();
-  });
-
-  document.getElementById('btn-sw2').addEventListener('click', () => {
-    const block = getActiveBlockDef();
-    if (getBlockTotalPages(block) >= 2) {
-      state.activePage = 1;
-      renderAll();
-    }
-  });
-
-  document.getElementById('btn-sw3').addEventListener('click', () => {
-    const block = getActiveBlockDef();
-    if (getBlockTotalPages(block) >= 3) {
-      state.activePage = 2;
-      renderAll();
-    }
-  });
-
-  // Right Nav Buttons
-  document.getElementById('btn-rig-prev').addEventListener('click', () => stepRig(-1));
-  document.getElementById('btn-rig-next').addEventListener('click', () => stepRig(1));
-
-  const toggleBankType = () => {
+  document.getElementById('btn-bank-toggle').addEventListener('click', () => {
     state.bankType = state.bankType === 'USER' ? 'FACTORY' : 'USER';
     const pc = state.bankIndex * 4 + state.slotIndex;
-    selectRigByPC(pc);
-  };
-  document.getElementById('btn-bank-toggle').addEventListener('click', toggleBankType);
-  document.getElementById('lcd-bank-type').addEventListener('click', toggleBankType);
-
-  // Effects Stomp Buttons
-  SIGNAL_BLOCKS.forEach(block => {
-    const btn = document.getElementById(`fxbtn-${block.id}`);
-    if (!btn) return;
-    btn.addEventListener('click', () => toggleBlockBypass(block.id));
-    btn.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      state.activeBlockId = block.id;
-      state.activePage = 0;
-      renderAll();
-    });
+    sendMidiPC(pc, state.bankType);
+    renderRigBar();
   });
 
-  // Clicking the Wah Pedal Power LED also toggles Wah Bypass
-  document.getElementById('wah-pedal-led').addEventListener('click', () => {
-    toggleBlockBypass('wah');
+  document.getElementById('rig-name-input').addEventListener('input', (e) => {
+    const pc = state.bankIndex * 4 + state.slotIndex;
+    const nameKey = `${state.bankType}_${pc}`;
+    state.customRigNames[nameKey] = e.target.value.toUpperCase();
+    renderRigBar();
+    saveLocalState();
   });
 
-  // Tap Tempo Button
+  // Tap & Tuner
   document.getElementById('btn-tap-tempo').addEventListener('click', () => {
-    sendMidiCC(state.ccMap.tap_tempo, 127, 'Tap Tempo');
-    const tapBtn = document.getElementById('btn-tap-tempo');
-    tapBtn.classList.add('active');
-    setTimeout(() => tapBtn.classList.remove('active'), 140);
+    sendMidiCC(CC_MAP.tap_tempo, 127, 'Tap Tempo');
+    const led = document.getElementById('tap-led');
+    led.style.background = 'var(--led-amber)';
+    setTimeout(() => led.style.background = '#333', 120);
   });
 
-  // Tuner Button
   document.getElementById('btn-tuner').addEventListener('click', () => {
     state.tunerActive = !state.tunerActive;
-    sendMidiCC(state.ccMap.tuner, state.tunerActive ? 127 : 0, `Tuner ${state.tunerActive ? 'ON' : 'OFF'}`);
-    renderAll();
+    sendMidiCC(CC_MAP.tuner, state.tunerActive ? 127 : 0, `Tuner ${state.tunerActive ? 'ON' : 'OFF'}`);
+    renderTuner();
   });
 
-  // Expression Pedals
-  document.getElementById('slider-wah').addEventListener('input', (e) => {
-    const val = parseInt(e.target.value, 10);
-    state.paramValues.wah_pedal = val;
-    state.paramValues.wah_p1 = val;
-    saveCurrentSlotVirtualRig();
-    sendMidiCC(state.ccMap.wah_pedal, val, 'Wah Pedal');
-    renderPedals();
-    if (state.activeBlockId === 'wah') {
-      renderLCD();
-      renderSixEncoders();
-    }
+  // Nav actions
+  document.getElementById('midi-out-select').addEventListener('change', bindMidiPorts);
+  document.getElementById('midi-in-select').addEventListener('change', bindMidiPorts);
+  document.getElementById('midi-channel-select').addEventListener('change', (e) => {
+    state.midiChannel = parseInt(e.target.value, 10) || 0;
+    logMidi('info', `MIDI Channel set to ${state.midiChannel + 1}`);
   });
-
-  document.getElementById('slider-vol').addEventListener('input', (e) => {
-    const val = parseInt(e.target.value, 10);
-    state.paramValues.rig_volume = val;
-    state.paramValues.amp_p12 = val;
-    saveCurrentSlotVirtualRig();
-    sendMidiCC(state.ccMap.rig_volume, val, 'Volume Pedal');
-    renderMasterVolume();
-    renderPedals();
-    if (state.activeBlockId === 'amp' && state.activePage === 1) {
-      renderLCD();
-      renderSixEncoders();
-    }
-  });
-
-  document.getElementById('slider-exp').addEventListener('input', (e) => {
-    const val = parseInt(e.target.value, 10);
-    state.paramValues.exp_pedal = val;
-    saveCurrentSlotVirtualRig();
-    sendMidiCC(state.ccMap.exp_pedal, val, 'Multi-FX Expression');
-    renderPedals();
-  });
-
-  // Auto-Push Cheat Mode Toggle
-  document.getElementById('btn-auto-push-rig').addEventListener('click', () => {
-    state.autoPushRig = !state.autoPushRig;
-    try {
-      localStorage.setItem('11r_auto_push', String(state.autoPushRig));
-    } catch (_) {}
-    renderQuickRigSwitcher();
-    logMidi('info', `Virtual Rig Auto-Push Mode ${state.autoPushRig ? 'ENABLED (Switching Rigs or Amps sends Base PC + Full CC Override)' : 'DISABLED (Standard PC only)'}`);
-  });
-
-  // Base Hardware Slot (PC) Selector
-  document.getElementById('base-hw-pc-select').addEventListener('change', (e) => {
-    state.basePC = parseInt(e.target.value, 10) || 0;
-    saveCurrentSlotVirtualRig();
-    renderAll();
-    if (state.autoPushRig) {
-      sendFullVirtualRigToHardware(true);
-    }
-  });
-
-  // Quick Bank / Patch Matrix
-  document.getElementById('quick-bank-letter').addEventListener('change', (e) => {
-    state.bankIndex = parseInt(e.target.value, 10) || 0;
-    const pc = state.bankIndex * 4 + state.slotIndex;
-    selectRigByPC(pc);
-  });
-
-  document.getElementById('btn-quick-user').addEventListener('click', () => {
-    state.bankType = 'USER';
-    selectRigByPC(state.bankIndex * 4 + state.slotIndex);
-  });
-
-  document.getElementById('btn-quick-factory').addEventListener('click', () => {
-    state.bankType = 'FACTORY';
-    selectRigByPC(state.bankIndex * 4 + state.slotIndex);
-  });
-
-  document.querySelectorAll('.rig-stomp-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const slot = parseInt(btn.getAttribute('data-slot'), 10);
-      state.slotIndex = slot;
-      const pc = state.bankIndex * 4 + state.slotIndex;
-      selectRigByPC(pc);
-    });
-  });
-
-  // Reset Current Slot to Default Virtual Rig
-  document.getElementById('btn-reset-slot').addEventListener('click', () => {
-    const pc = state.bankIndex * 4 + state.slotIndex;
-    const key = getRigSlotKey(state.bankType, pc);
-    delete state.slotRigs[key];
-    delete state.customRigNames[key];
-    try {
-      localStorage.setItem('11r_slot_rigs_v1', JSON.stringify(state.slotRigs));
-      localStorage.setItem('11r_custom_rig_names', JSON.stringify(state.customRigNames));
-    } catch (_) {}
-    loadSlotVirtualRig(state.bankType, pc);
-    renderAll();
-    if (state.autoPushRig) {
-      sendFullVirtualRigToHardware(true);
-    }
-    logMidi('info', `Reset slot ${formatSlotCode(state.bankType, pc)} to default Virtual Rig.`);
-  });
-
-  // Snapshots / Custom Virtual Rigs Save / Load / Export / Import
-  document.getElementById('btn-save-preset').addEventListener('click', () => {
-    const name = (document.getElementById('lcd-rig-name').value || 'CUSTOM RIG').trim();
-    state.presets[name] = {
-      baseBankType: state.baseBankType,
-      basePC: state.basePC,
-      selectedAmpId: state.selectedAmpId,
-      selectedCabId: state.selectedCabId,
-      selectedMicId: state.selectedMicId,
-      micOnAxis: state.micOnAxis,
-      selectedFxModels: { ...state.selectedFxModels },
-      blockState: { ...state.blockState },
-      paramValues: { ...state.paramValues }
-    };
-    localStorage.setItem('11r_presets_v2', JSON.stringify(state.presets));
-    refreshPresetDropdown();
-    document.getElementById('preset-list-select').value = name;
-    logMidi('info', `Saved complete Virtual Rig "${name}" to library.`);
-  });
-
-  document.getElementById('preset-list-select').addEventListener('change', (e) => {
-    const name = e.target.value;
-    if (!name || !state.presets[name]) return;
-    const p = state.presets[name];
-    state.baseBankType = p.baseBankType || state.bankType;
-    state.basePC = typeof p.basePC === 'number' ? p.basePC : (AMP_MODELS.find(m => m.id === p.selectedAmpId)?.defaultRigPC ?? 0);
-    state.selectedAmpId = p.selectedAmpId || 'plexi_100';
-    state.selectedCabId = p.selectedCabId || '4x12_classic_30';
-    state.selectedMicId = p.selectedMicId || 'dyn_57';
-    state.micOnAxis = p.micOnAxis !== undefined ? p.micOnAxis : true;
-    if (p.selectedFxModels) {
-      state.selectedFxModels = { ...state.selectedFxModels, ...p.selectedFxModels };
-    }
-    state.blockState = { ...state.blockState, ...p.blockState };
-    state.paramValues = { ...state.paramValues, ...p.paramValues };
-    setRigNameForCurrentSlot(name);
-    saveCurrentSlotVirtualRig();
-    renderAll();
-    sendFullVirtualRigToHardware(true);
-  });
-
-  document.getElementById('btn-export-json').addEventListener('click', () => {
-    const payload = {
-      theme: state.theme,
-      autoPushRig: state.autoPushRig,
-      ccMap: state.ccMap,
-      customRigNames: state.customRigNames,
-      slotRigs: state.slotRigs,
-      presets: state.presets
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'eleven-rack-controller-backup.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  });
-
-  document.getElementById('btn-import-json').addEventListener('click', () => {
-    document.getElementById('import-file-input').click();
-  });
-
-  document.getElementById('import-file-input').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target.result);
-        if (data.theme) {
-          state.theme = data.theme;
-          document.body.setAttribute('data-theme', state.theme);
-          document.getElementById('theme-select').value = state.theme;
-          localStorage.setItem('11r_theme', state.theme);
-        }
-        if (data.ccMap) {
-          state.ccMap = { ...DEFAULT_CC_MAP, ...data.ccMap };
-          localStorage.setItem('11r_cc_map_v4', JSON.stringify(state.ccMap));
-        }
-        if (data.customRigNames) {
-          state.customRigNames = { ...state.customRigNames, ...data.customRigNames };
-          localStorage.setItem('11r_custom_rig_names', JSON.stringify(state.customRigNames));
-        }
-        if (data.slotRigs) {
-          state.slotRigs = { ...state.slotRigs, ...data.slotRigs };
-          localStorage.setItem('11r_slot_rigs_v1', JSON.stringify(state.slotRigs));
-        }
-        if (data.presets) {
-          state.presets = { ...state.presets, ...data.presets };
-          localStorage.setItem('11r_presets_v2', JSON.stringify(state.presets));
-          refreshPresetDropdown();
-        }
-        loadSlotVirtualRig(state.bankType, state.bankIndex * 4 + state.slotIndex);
-        renderAll();
-        logMidi('info', 'Imported controller configuration, custom Rig names, slot Rigs & snapshots.');
-      } catch (err) {
-        logMidi('info', `Import error: ${err.message}`);
-      }
-    };
-    reader.readAsText(file);
-  });
-
-  // Live MIDI Stream Actions
+  document.getElementById('btn-refresh-midi').addEventListener('click', populateMidiDevices);
+  document.getElementById('btn-panic-all-off').addEventListener('click', resetIO);
+  document.getElementById('btn-sync-all-knobs').addEventListener('click', pushAllKnobs);
   document.getElementById('btn-clear-log').addEventListener('click', () => {
     document.getElementById('midi-log-list').innerHTML = '';
   });
 
-  document.getElementById('btn-send-manual-cc').addEventListener('click', () => {
-    const cc = parseInt(document.getElementById('manual-cc-num').value, 10) || 0;
-    const val = parseInt(document.getElementById('manual-cc-val').value, 10) || 0;
-    sendMidiCC(cc, val, 'Manual Test');
+  document.getElementById('theme-select').addEventListener('change', (e) => {
+    state.theme = e.target.value;
+    document.body.setAttribute('data-theme', state.theme);
+    saveLocalState();
   });
 
-  // MIDI Guide Modal
-  const infoModal = document.getElementById('info-modal-backdrop');
-  document.getElementById('btn-midi-info-modal').addEventListener('click', () => infoModal.classList.remove('hidden'));
-  document.getElementById('btn-close-info-modal').addEventListener('click', () => infoModal.classList.add('hidden'));
-  document.getElementById('btn-ok-info-modal').addEventListener('click', () => infoModal.classList.add('hidden'));
+  // Render initial board
+  renderAllKnobs();
+  renderBypasses();
+  renderRigBar();
+  renderPedals();
+  renderTuner();
 
-  // CC Mapping Modal
-  document.getElementById('btn-cc-map-modal').addEventListener('click', openCCModal);
-  document.getElementById('btn-close-modal').addEventListener('click', () => {
-    document.getElementById('cc-modal-backdrop').classList.add('hidden');
-  });
-
-  document.getElementById('btn-reset-default-ccs').addEventListener('click', () => {
-    state.ccMap = { ...DEFAULT_CC_MAP };
-    localStorage.setItem('11r_cc_map_v4', JSON.stringify(state.ccMap));
-    openCCModal();
-    renderAll();
-    logMidi('info', 'Reset MIDI CC mappings to Official Table 12 Eleven Rack defaults.');
-  });
-
-  document.getElementById('btn-save-close-modal').addEventListener('click', () => {
-    const inputs = document.querySelectorAll('#cc-config-container input[data-cc-key]');
-    inputs.forEach(inp => {
-      const key = inp.getAttribute('data-cc-key');
-      const val = Math.max(0, Math.min(127, parseInt(inp.value, 10) || 0));
-      state.ccMap[key] = val;
-    });
-    localStorage.setItem('11r_cc_map_v4', JSON.stringify(state.ccMap));
-    document.getElementById('cc-modal-backdrop').classList.add('hidden');
-    renderAll();
-    logMidi('info', 'Saved custom MIDI CC mappings.');
-  });
+  // Connect MIDI
+  initWebMIDI();
 });

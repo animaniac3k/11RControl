@@ -3,577 +3,609 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Avid Eleven Rack — USB MIDI Controller</title>
+  <title>Eleven Rack — Live Performance Controller</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body data-theme="orange">
-  <div class="app-wrapper">
-    <!-- Top Connection, Theme & Utility Bar -->
-    <header class="top-bar">
-      <div class="brand-badge">
+  <div class="app-layout">
+    <!-- Top Header: MIDI Status & Global Controls -->
+    <header class="top-nav">
+      <div class="brand">
         <span class="brand-avid">AVID</span>
-        <span class="brand-eleven">Eleven Rack</span>
-        <span class="brand-sub">USB MIDI Controller &bull; FW 2.0.1 (ERXP)</span>
+        <span class="brand-name">ELEVEN RACK</span>
+        <span class="badge-live">LIVE RIG BOARD</span>
       </div>
 
-      <div class="midi-config">
-        <div class="config-group">
+      <div class="nav-controls">
+        <div class="ctrl-group">
           <label for="midi-out-select">MIDI OUT</label>
           <select id="midi-out-select">
-            <option value="">-- No MIDI Output Selected --</option>
+            <option value="">-- No Output --</option>
           </select>
         </div>
 
-        <div class="config-group">
-          <label for="midi-in-select">MIDI IN</label>
+        <div class="ctrl-group">
+          <label for="midi-in-select">MIDI IN (2-WAY)</label>
           <select id="midi-in-select">
-            <option value="">-- Optional MIDI In --</option>
+            <option value="">-- No Input --</option>
           </select>
         </div>
 
-        <div class="config-group">
+        <div class="ctrl-group ch-group">
           <label for="midi-channel-select">CH</label>
           <select id="midi-channel-select">
-            <option value="0">Ch 1</option>
-            <option value="1">Ch 2</option>
-            <option value="2">Ch 3</option>
-            <option value="3">Ch 4</option>
-            <option value="4">Ch 5</option>
-            <option value="5">Ch 6</option>
-            <option value="6">Ch 7</option>
-            <option value="7">Ch 8</option>
-            <option value="8">Ch 9</option>
-            <option value="9">Ch 10</option>
-            <option value="10">Ch 11</option>
-            <option value="11">Ch 12</option>
-            <option value="12">Ch 13</option>
-            <option value="13">Ch 14</option>
-            <option value="14">Ch 15</option>
-            <option value="15">Ch 16</option>
+            <option value="0">1</option><option value="1">2</option><option value="2">3</option>
+            <option value="3">4</option><option value="4">5</option><option value="5">6</option>
+            <option value="6">7</option><option value="7">8</option><option value="8">9</option>
+            <option value="9">10</option><option value="10">11</option><option value="11">12</option>
+            <option value="12">13</option><option value="13">14</option><option value="14">15</option>
+            <option value="15">16</option>
           </select>
         </div>
 
-        <div class="config-group">
+        <div class="ctrl-group">
           <label for="theme-select">THEME</label>
-          <select id="theme-select" title="Switch Chassis & LCD Color Scheme">
-            <option value="orange">Classic Eleven Orange</option>
-            <option value="blue">Cobalt Studio Blue</option>
-            <option value="green">Matrix Phosphor Green</option>
-            <option value="crimson">Mesa Crimson Red</option>
-            <option value="violet">Boutique Cyber Violet</option>
+          <select id="theme-select">
+            <option value="orange">Eleven Orange</option>
+            <option value="blue">Cobalt Blue</option>
+            <option value="green">Phosphor Green</option>
+            <option value="crimson">Mesa Red</option>
+            <option value="violet">Cyber Violet</option>
           </select>
         </div>
 
-        <button id="btn-refresh-midi" class="top-btn" title="Rescan USB MIDI Devices">&#x21bb; Rescan</button>
-        <button id="btn-midi-info-modal" class="top-btn" title="How MIDI Sync, Amp Switching & Deep Editing work on Eleven Rack">&#x2139; MIDI Guide</button>
-        <button id="btn-cc-map-modal" class="top-btn accent" title="Configure & Inspect Official Table 12 MIDI CC Mappings">&#x2699; CC Map</button>
+        <button id="btn-refresh-midi" class="pill-btn" title="Rescan MIDI Devices">&#x21bb; Rescan</button>
+        <button id="btn-panic-all-off" class="pill-btn" title="Force Guitar Input (CC 65=0) + Reset Pedals">Reset I/O</button>
       </div>
 
-      <div class="midi-status-pill" id="midi-status-pill">
+      <div class="midi-status-wrap">
         <span class="status-dot" id="midi-status-dot"></span>
-        <span id="midi-status-text">Initializing Web MIDI...</span>
+        <span id="midi-status-text">Web MIDI Initializing...</span>
       </div>
     </header>
 
-    <!-- 2U Hardware Rack Chassis -->
-    <main class="rack-unit" id="rack-unit">
-      <!-- Left Rack Ear -->
-      <div class="rack-ear left">
-        <div class="rack-hole top"></div>
-        <div class="rack-hole bottom"></div>
-      </div>
-
-      <!-- Main Faceplate -->
-      <div class="faceplate">
-        <!-- Decorative Accent Bezel Frame -->
-        <div class="orange-bezel">
-
-          <!-- SECTION 1: Power & Master Volume (Left) -->
-          <section class="panel-section power-vol-section">
-            <div class="power-switch-wrap">
-              <button id="power-switch" class="power-rocker active" title="Toggle Rack UI Power State">
-                <span class="rocker-half on">I</span>
-                <span class="rocker-half off">O</span>
-              </button>
-              <span class="panel-label">POWER</span>
-            </div>
-
-            <div class="master-vol-wrap">
-              <div class="knob-container large-knob" data-param-id="rig_volume">
-                <div class="knob-led-ring" id="ring-rig_volume"></div>
-                <div class="knob-body" id="knob-rig_volume" tabindex="0" title="Master / Rig Volume (MIDI CC #7)">
-                  <div class="knob-indicator"></div>
-                  <div class="knob-cap"></div>
-                </div>
-              </div>
-              <span class="panel-label">VOLUME</span>
-            </div>
-          </section>
-
-          <!-- SECTION 2: Central Display, Navigation & 6 Lit Soft Encoders -->
-          <section class="panel-section center-console-section">
-            <div class="lcd-and-nav-row">
-              <!-- Left Nav Buttons (Edit/View, Push State, Page 1/2/3) -->
-              <div class="nav-col left-nav">
-                <button id="btn-view-mode" class="hw-rect-btn lit-amber" title="Cycle active Signal Block on LCD screen">
-                  NEXT BLOCK
-                </button>
-                <button id="btn-sync-rig" class="hw-rect-btn" title="Send Full Virtual Rig to Eleven Rack (Recalls Base Hardware Slot via PC, then pushes all 10 Block Bypasses & all Knob CCs)">
-                  SEND RIG
-                </button>
-                <div class="sw-buttons">
-                  <button id="btn-sw1" class="hw-small-btn active" title="Parameter Page 1 (Knobs 1-6)">PAGE 1</button>
-                  <button id="btn-sw2" class="hw-small-btn" title="Parameter Page 2 (Knobs 7-12)">PAGE 2</button>
-                  <button id="btn-sw3" class="hw-small-btn" title="Parameter Page 3 (Knobs 13-14 on FX 1 / FX 2)">PAGE 3</button>
-                </div>
-              </div>
-
-              <!-- Central Backlit LCD Display -->
-              <div class="lcd-bezel">
-                <div class="lcd-screen" id="lcd-screen">
-                  <!-- LCD Header: Prominent Rig ID & Editable Rig Name Banner -->
-                  <div class="lcd-top-bar">
-                    <div class="rig-patch-box">
-                      <span class="rig-bank-badge" id="lcd-bank-type" title="Click to toggle User (A-Z) / Factory (a-z) Bank (MIDI CC #0)">USER</span>
-                      <span class="rig-id" id="lcd-rig-id" title="Current Rig Slot (PC #000)">A1</span>
-                    </div>
-
-                    <div class="rig-title-box">
-                      <input
-                        type="text"
-                        id="lcd-rig-name"
-                        class="lcd-rig-name-input"
-                        value="BIG BLUE PLEXI"
-                        title="Click to edit custom Rig Name for this slot (Saved automatically per slot)"
-                        spellcheck="false"
-                      />
-                      <span class="rig-edit-hint" title="Hardware does not transmit Rig names over MIDI; names you type here are saved per slot in your browser">&#x270E;</span>
-                    </div>
-
-                    <div class="lcd-page-pills">
-                      <span class="lcd-mode-pill" id="lcd-block-badge">AMP VIEW</span>
-                    </div>
-                  </div>
-
-                  <!-- LCD Signal Chain Bar (Interactive Block Selector + Bypass indicator) -->
-                  <div class="lcd-signal-chain" id="lcd-signal-chain">
-                    <!-- Populated by JS: WAH -> DIST -> FX1 -> FX2 -> AMP -> CAB -> LOOP -> MOD -> DLY -> REV -->
-                  </div>
-
-                  <!-- LCD Active Block & Parameter Readout Area (Corresponds to the 6 Knobs below) -->
-                  <div class="lcd-param-area">
-                    <div class="lcd-block-header">
-                      <div class="lcd-block-title-group">
-                        <span id="lcd-active-block-title">AMP: 1969 PLEXIGLAS 100W</span>
-                        <!-- Contextual Amp Knob Layout Selector (ONLY shown when AMP block is active!) -->
-                        <div class="lcd-amp-context-wrap" id="lcd-amp-context-wrap">
-                          <label for="amp-model-select" class="lcd-mini-label">AMP:</label>
-                          <select id="amp-model-select" class="lcd-select" title="Select Amp Model for this Rig (Switches hardware to matching Base Rig PC & pushes all your current Rig bypasses and knob settings)">
-                          </select>
-                          <button id="btn-jump-amp-rig" class="lcd-mini-btn" title="Send Base Amp Rig (PC) + Push Full Virtual Rig CCs to Eleven Rack">SYNC AMP &#x279C;</button>
-                        </div>
-
-                        <!-- Contextual Cab & Mic Selector (ONLY shown when CAB block is active!) -->
-                        <div class="lcd-amp-context-wrap hidden" id="lcd-cab-context-wrap">
-                          <label for="cab-model-select" class="lcd-mini-label">CAB:</label>
-                          <select id="cab-model-select" class="lcd-select" title="15 Eleven Rack Speaker Cabinets">
-                          </select>
-                          <label for="mic-model-select" class="lcd-mini-label">MIC:</label>
-                          <select id="mic-model-select" class="lcd-select" title="10 Eleven Rack Microphone Models">
-                          </select>
-                          <button id="btn-mic-axis" class="lcd-mini-btn" title="Mic Placement: On-Axis (Brighter) vs Off-Axis (Warmer)">ON-AXIS</button>
-                        </div>
-
-                        <!-- Contextual Effect Model Selector (ONLY shown when WAH, DIST, FX1, FX2, MOD, DELAY, or REVERB is active!) -->
-                        <div class="lcd-amp-context-wrap hidden" id="lcd-fx-context-wrap">
-                          <label for="fx-model-select" class="lcd-mini-label" id="fx-model-label">MODEL:</label>
-                          <select id="fx-model-select" class="lcd-select" title="Select Effect Model for this block (Updates the 6 soft encoder parameter labels & saves with your Virtual Rig)">
-                          </select>
-                        </div>
-                      </div>
-                      <span id="lcd-active-page-indicator">PAGE 1/2</span>
-                    </div>
-                    <div class="lcd-knobs-readout" id="lcd-knobs-readout">
-                      <!-- 6 virtual LCD columns matching the 6 encoders directly below -->
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Right Nav: Scroll Wheel & Bank/Rig Stepping -->
-              <div class="nav-col right-nav">
-                <div class="scroll-wheel-wrap">
-                  <div class="scroll-wheel" id="rig-scroll-wheel" title="Drag up/down or use mouse wheel to scroll Rigs (Sends Program Change)">
-                    <div class="wheel-grooves"></div>
-                  </div>
-                  <span class="panel-label">RIG SCROLL</span>
-                </div>
-                <div class="patch-step-btns">
-                  <button id="btn-rig-prev" class="hw-small-btn" title="Previous Rig (Program Change)">- RIG</button>
-                  <button id="btn-rig-next" class="hw-small-btn" title="Next Rig (Program Change)">+ RIG</button>
-                </div>
-                <div class="bank-step-btns">
-                  <button id="btn-bank-toggle" class="hw-small-btn" title="Toggle User (A-Z) / Factory (a-z) Bank (CC 0)">USR / FAC</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- 6 Glowing Soft Rotary Encoders Directly Underneath LCD -->
-            <div class="six-encoders-row" id="six-encoders-row">
-              <!-- Populated by JS: 6 encoders with glowing LED rings -->
-            </div>
-          </section>
-
-          <!-- SECTION 3: Effects Control Stomp Buttons & Utility (Right) -->
-          <section class="panel-section fx-controls-section">
-            <div class="section-header-Row">
-              <span class="eleven-logo-mark">11</span>
-              <span class="section-title-text">EFFECTS &amp; BLOCK CONTROL</span>
-            </div>
-
-            <div class="fx-buttons-grid">
-              <!-- Row 1: FX1, FX2, DIST, MOD -->
-              <div class="fx-btn-cell">
-                <button class="hw-fx-btn" data-block="fx1" id="fxbtn-fx1">
-                  <span class="fx-led"></span>
-                  <span class="fx-name">FX 1</span>
-                </button>
-              </div>
-
-              <div class="fx-btn-cell">
-                <button class="hw-fx-btn" data-block="fx2" id="fxbtn-fx2">
-                  <span class="fx-led"></span>
-                  <span class="fx-name">FX 2</span>
-                </button>
-              </div>
-
-              <div class="fx-btn-cell">
-                <button class="hw-fx-btn" data-block="dist" id="fxbtn-dist">
-                  <span class="fx-led"></span>
-                  <span class="fx-name">DIST</span>
-                </button>
-              </div>
-
-              <div class="fx-btn-cell">
-                <button class="hw-fx-btn" data-block="mod" id="fxbtn-mod">
-                  <span class="fx-led"></span>
-                  <span class="fx-name">MOD</span>
-                </button>
-              </div>
-
-              <!-- Row 2: DELAY, REVERB, FX LOOP, AMP -->
-              <div class="fx-btn-cell">
-                <button class="hw-fx-btn" data-block="delay" id="fxbtn-delay">
-                  <span class="fx-led"></span>
-                  <span class="fx-name">DELAY</span>
-                </button>
-              </div>
-
-              <div class="fx-btn-cell">
-                <button class="hw-fx-btn" data-block="reverb" id="fxbtn-reverb">
-                  <span class="fx-led"></span>
-                  <span class="fx-name">REVERB</span>
-                </button>
-              </div>
-
-              <div class="fx-btn-cell">
-                <button class="hw-fx-btn" data-block="fxloop" id="fxbtn-fxloop">
-                  <span class="fx-led"></span>
-                  <span class="fx-name">FX LOOP</span>
-                </button>
-              </div>
-
-              <div class="fx-btn-cell">
-                <button class="hw-fx-btn active" data-block="amp" id="fxbtn-amp">
-                  <span class="fx-led"></span>
-                  <span class="fx-name">AMP</span>
-                </button>
-              </div>
-
-              <!-- Row 3: WAH (FX1+FX2 combo on hardware), CAB, TAP TEMPO, TUNER -->
-              <div class="fx-btn-cell">
-                <button class="hw-fx-btn" data-block="wah" id="fxbtn-wah">
-                  <span class="fx-led"></span>
-                  <span class="fx-name">WAH</span>
-                </button>
-              </div>
-
-              <div class="fx-btn-cell">
-                <button class="hw-fx-btn active" data-block="cab" id="fxbtn-cab">
-                  <span class="fx-led"></span>
-                  <span class="fx-name">CAB</span>
-                </button>
-              </div>
-
-              <div class="fx-btn-cell">
-                <button class="hw-fx-btn utility-btn" id="btn-tap-tempo">
-                  <span class="fx-led tap-pulse" id="tap-led"></span>
-                  <span class="fx-name">TAP</span>
-                </button>
-              </div>
-
-              <div class="fx-btn-cell">
-                <button class="hw-fx-btn utility-btn" id="btn-tuner">
-                  <span class="fx-led"></span>
-                  <span class="fx-name">TUNER</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="hw-hint-bar">
-              <span><strong>Click</strong> FX button: Toggle Bypass &amp; inspect block &bull; <strong>Right-Click</strong>: Inspect without toggling &bull; <strong>Page 1/2</strong>: Access Settings 1–12</span>
-            </div>
-          </section>
-
-          <!-- SECTION 4: Hardware Jack Aesthetics (Far Right) -->
-          <section class="panel-section jacks-section">
-            <div class="jack-group">
-              <div class="hw-jack-socket">
-                <div class="jack-nut">
-                  <div class="jack-hole"></div>
-                </div>
-              </div>
-              <span class="panel-label">TRUE-Z IN</span>
-            </div>
-
-            <div class="jack-group">
-              <div class="hw-jack-socket">
-                <div class="jack-nut">
-                  <div class="jack-hole"></div>
-                </div>
-              </div>
-              <span class="panel-label">PHONES</span>
-            </div>
-          </section>
-
+    <!-- Main Live Board: Single-Screen Complete Signal Chain -->
+    <main class="live-board">
+      
+      <!-- 1. LIVE RIG / BANK BAR -->
+      <section class="board-strip rig-strip">
+        <div class="rig-info-box">
+          <button id="btn-bank-toggle" class="mode-badge" title="Toggle User (A-Z) / Factory (a-z)">USER</button>
+          <span class="rig-slot-code" id="rig-slot-display">A1</span>
+          <div class="rig-meta">
+            <input type="text" id="rig-name-input" class="rig-name-field" value="RIG A1" spellcheck="false" title="Click to rename this slot" />
+            <span class="rig-subtext" id="rig-pc-display">Program Change #000</span>
+          </div>
         </div>
-      </div>
 
-      <!-- Right Rack Ear -->
-      <div class="rack-ear right">
-        <div class="rack-hole top"></div>
-        <div class="rack-hole bottom"></div>
-      </div>
+        <!-- 4 Live Rig Footswitches -->
+        <div class="rig-footswitch-bank">
+          <button class="rig-stomp-btn active" data-slot="0" id="stomp-0">
+            <span class="stomp-led"></span>
+            <span class="stomp-code" id="stomp-code-0">A1</span>
+            <span class="stomp-label" id="stomp-label-0">RIG A1</span>
+          </button>
+          <button class="rig-stomp-btn" data-slot="1" id="stomp-1">
+            <span class="stomp-led"></span>
+            <span class="stomp-code" id="stomp-code-1">A2</span>
+            <span class="stomp-label" id="stomp-label-1">RIG A2</span>
+          </button>
+          <button class="rig-stomp-btn" data-slot="2" id="stomp-2">
+            <span class="stomp-led"></span>
+            <span class="stomp-code" id="stomp-code-2">A3</span>
+            <span class="stomp-label" id="stomp-label-2">RIG A3</span>
+          </button>
+          <button class="rig-stomp-btn" data-slot="3" id="stomp-3">
+            <span class="stomp-led"></span>
+            <span class="stomp-code" id="stomp-code-3">A4</span>
+            <span class="stomp-label" id="stomp-label-3">RIG A4</span>
+          </button>
+        </div>
+
+        <div class="bank-steppers">
+          <button id="btn-bank-prev" class="step-btn" title="Previous Bank">&lt; BANK</button>
+          <button id="btn-bank-next" class="step-btn" title="Next Bank">BANK &gt;</button>
+        </div>
+
+        <div class="live-tuner-tap">
+          <button id="btn-tap-tempo" class="util-stomp" title="Tap Tempo (MIDI CC #64)">
+            <span class="util-led" id="tap-led"></span>
+            <span>TAP TEMPO</span>
+          </button>
+          <button id="btn-tuner" class="util-stomp" title="Toggle Chromatic Tuner / Mute (MIDI CC #69)">
+            <span class="util-led" id="tuner-led"></span>
+            <span>TUNER</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 2. AMP & CAB HERO SECTION (Primary tone-shaping controls live) -->
+      <section class="board-strip amp-hero-strip">
+        <div class="amp-header-bar">
+          <div class="block-title-row">
+            <span class="block-tag">AMP</span>
+            <h3>AMPLIFIER &amp; MASTER OUTPUT</h3>
+          </div>
+          <div class="block-controls-row">
+            <button class="bypass-toggle-btn active" data-block="amp" id="bypass-amp" title="Amp Model Bypass (MIDI CC #111)">
+              <span class="btn-led"></span>
+              <span class="btn-text">AMP ENGAGED</span>
+            </button>
+            <button class="bypass-toggle-btn active" data-block="cab" id="bypass-cab" title="Cab &amp; Mic Bypass (MIDI CC #92)">
+              <span class="btn-led"></span>
+              <span class="btn-text">CAB ENGAGED</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="amp-knobs-grid">
+          <!-- 6 Primary Classic Front-Panel Knobs -->
+          <div class="knob-cell" data-param="amp_p1">
+            <div class="knob-wrap" id="wrap-amp_p1">
+              <div class="knob-ring" id="ring-amp_p1"></div>
+              <div class="knob-body" id="knob-amp_p1" tabindex="0">
+                <div class="knob-line"></div>
+              </div>
+            </div>
+            <span class="knob-title">GAIN</span>
+            <span class="knob-readout" id="val-amp_p1">7.0</span>
+          </div>
+
+          <div class="knob-cell" data-param="amp_p2">
+            <div class="knob-wrap" id="wrap-amp_p2">
+              <div class="knob-ring" id="ring-amp_p2"></div>
+              <div class="knob-body" id="knob-amp_p2" tabindex="0">
+                <div class="knob-line"></div>
+              </div>
+            </div>
+            <span class="knob-title">BASS</span>
+            <span class="knob-readout" id="val-amp_p2">5.5</span>
+          </div>
+
+          <div class="knob-cell" data-param="amp_p3">
+            <div class="knob-wrap" id="wrap-amp_p3">
+              <div class="knob-ring" id="ring-amp_p3"></div>
+              <div class="knob-body" id="knob-amp_p3" tabindex="0">
+                <div class="knob-line"></div>
+              </div>
+            </div>
+            <span class="knob-title">MIDDLE</span>
+            <span class="knob-readout" id="val-amp_p3">6.0</span>
+          </div>
+
+          <div class="knob-cell" data-param="amp_p4">
+            <div class="knob-wrap" id="wrap-amp_p4">
+              <div class="knob-ring" id="ring-amp_p4"></div>
+              <div class="knob-body" id="knob-amp_p4" tabindex="0">
+                <div class="knob-line"></div>
+              </div>
+            </div>
+            <span class="knob-title">TREBLE</span>
+            <span class="knob-readout" id="val-amp_p4">6.5</span>
+          </div>
+
+          <div class="knob-cell" data-param="amp_p5">
+            <div class="knob-wrap" id="wrap-amp_p5">
+              <div class="knob-ring" id="ring-amp_p5"></div>
+              <div class="knob-body" id="knob-amp_p5" tabindex="0">
+                <div class="knob-line"></div>
+              </div>
+            </div>
+            <span class="knob-title">PRESENCE</span>
+            <span class="knob-readout" id="val-amp_p5">5.0</span>
+          </div>
+
+          <div class="knob-cell" data-param="amp_p6">
+            <div class="knob-wrap" id="wrap-amp_p6">
+              <div class="knob-ring" id="ring-amp_p6"></div>
+              <div class="knob-body" id="knob-amp_p6" tabindex="0">
+                <div class="knob-line"></div>
+              </div>
+            </div>
+            <span class="knob-title">MASTER</span>
+            <span class="knob-readout" id="val-amp_p6">7.5</span>
+          </div>
+
+          <!-- Secondary Essential Amp Controls (Output, Volume, Breakup) -->
+          <div class="knob-cell accent-cell" data-param="amp_p11">
+            <div class="knob-wrap" id="wrap-amp_p11">
+              <div class="knob-ring" id="ring-amp_p11"></div>
+              <div class="knob-body" id="knob-amp_p11" tabindex="0">
+                <div class="knob-line"></div>
+              </div>
+            </div>
+            <span class="knob-title">AMP OUT</span>
+            <span class="knob-readout" id="val-amp_p11">8.0</span>
+          </div>
+
+          <div class="knob-cell accent-cell" data-param="rig_volume">
+            <div class="knob-wrap" id="wrap-rig_volume">
+              <div class="knob-ring" id="ring-rig_volume"></div>
+              <div class="knob-body" id="knob-rig_volume" tabindex="0">
+                <div class="knob-line"></div>
+              </div>
+            </div>
+            <span class="knob-title">RIG VOL</span>
+            <span class="knob-readout" id="val-rig_volume">8.0</span>
+          </div>
+
+          <div class="knob-cell accent-cell" data-param="cab_p1">
+            <div class="knob-wrap" id="wrap-cab_p1">
+              <div class="knob-ring" id="ring-cab_p1"></div>
+              <div class="knob-body" id="knob-cab_p1" tabindex="0">
+                <div class="knob-line"></div>
+              </div>
+            </div>
+            <span class="knob-title">BREAKUP</span>
+            <span class="knob-readout" id="val-cab_p1">3.0</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. ALL PEDALS & EFFECTS MODULES IN ONE UNIFIED PANORAMA -->
+      <section class="board-strip fx-modules-grid">
+        
+        <!-- DISTORTION / OD MODULE -->
+        <div class="fx-module" id="mod-dist">
+          <div class="module-header">
+            <div class="module-title">
+              <span class="module-tag">DIST</span>
+              <h4>DISTORTION / BOOST</h4>
+            </div>
+            <button class="module-bypass-btn active" data-block="dist" id="bypass-dist" title="Toggle Distortion (MIDI CC #25)">
+              <span class="btn-led"></span>
+              <span class="btn-text">ON</span>
+            </button>
+          </div>
+          <div class="module-knobs">
+            <div class="module-knob" data-param="dist_p1">
+              <div class="sm-knob-wrap" id="wrap-dist_p1">
+                <div class="sm-knob-ring" id="ring-dist_p1"></div>
+                <div class="sm-knob-body" id="knob-dist_p1" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">DRIVE</span>
+              <span class="sm-knob-val" id="val-dist_p1">6.0</span>
+            </div>
+            <div class="module-knob" data-param="dist_p2">
+              <div class="sm-knob-wrap" id="wrap-dist_p2">
+                <div class="sm-knob-ring" id="ring-dist_p2"></div>
+                <div class="sm-knob-body" id="knob-dist_p2" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">TONE</span>
+              <span class="sm-knob-val" id="val-dist_p2">5.0</span>
+            </div>
+            <div class="module-knob" data-param="dist_p3">
+              <div class="sm-knob-wrap" id="wrap-dist_p3">
+                <div class="sm-knob-ring" id="ring-dist_p3"></div>
+                <div class="sm-knob-body" id="knob-dist_p3" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">LEVEL</span>
+              <span class="sm-knob-val" id="val-dist_p3">7.0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODULATION MODULE -->
+        <div class="fx-module" id="mod-mod">
+          <div class="module-header">
+            <div class="module-title">
+              <span class="module-tag">MOD</span>
+              <h4>MODULATION (CHORUS/PHASER)</h4>
+            </div>
+            <button class="module-bypass-btn" data-block="mod" id="bypass-mod" title="Toggle Modulation (MIDI CC #50)">
+              <span class="btn-led"></span>
+              <span class="btn-text">OFF</span>
+            </button>
+          </div>
+          <div class="module-knobs">
+            <div class="module-knob" data-param="mod_p1">
+              <div class="sm-knob-wrap" id="wrap-mod_p1">
+                <div class="sm-knob-ring" id="ring-mod_p1"></div>
+                <div class="sm-knob-body" id="knob-mod_p1" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">RATE</span>
+              <span class="sm-knob-val" id="val-mod_p1">4.5</span>
+            </div>
+            <div class="module-knob" data-param="mod_p2">
+              <div class="sm-knob-wrap" id="wrap-mod_p2">
+                <div class="sm-knob-ring" id="ring-mod_p2"></div>
+                <div class="sm-knob-body" id="knob-mod_p2" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">DEPTH</span>
+              <span class="sm-knob-val" id="val-mod_p2">6.0</span>
+            </div>
+            <div class="module-knob" data-param="mod_p3">
+              <div class="sm-knob-wrap" id="wrap-mod_p3">
+                <div class="sm-knob-ring" id="ring-mod_p3"></div>
+                <div class="sm-knob-body" id="knob-mod_p3" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">MIX</span>
+              <span class="sm-knob-val" id="val-mod_p3">5.0</span>
+            </div>
+            <div class="module-knob" data-param="mod_p4">
+              <div class="sm-knob-wrap" id="wrap-mod_p4">
+                <div class="sm-knob-ring" id="ring-mod_p4"></div>
+                <div class="sm-knob-body" id="knob-mod_p4" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">FEEDBACK</span>
+              <span class="sm-knob-val" id="val-mod_p4">3.0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DELAY MODULE -->
+        <div class="fx-module" id="mod-delay">
+          <div class="module-header">
+            <div class="module-title">
+              <span class="module-tag">DLY</span>
+              <h4>DELAY / ECHO</h4>
+            </div>
+            <button class="module-bypass-btn active" data-block="delay" id="bypass-delay" title="Toggle Delay (MIDI CC #28)">
+              <span class="btn-led"></span>
+              <span class="btn-text">ON</span>
+            </button>
+          </div>
+          <div class="module-knobs">
+            <div class="module-knob" data-param="delay_p1">
+              <div class="sm-knob-wrap" id="wrap-delay_p1">
+                <div class="sm-knob-ring" id="ring-delay_p1"></div>
+                <div class="sm-knob-body" id="knob-delay_p1" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">TIME</span>
+              <span class="sm-knob-val" id="val-delay_p1">500ms</span>
+            </div>
+            <div class="module-knob" data-param="delay_p2">
+              <div class="sm-knob-wrap" id="wrap-delay_p2">
+                <div class="sm-knob-ring" id="ring-delay_p2"></div>
+                <div class="sm-knob-body" id="knob-delay_p2" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">FDBK</span>
+              <span class="sm-knob-val" id="val-delay_p2">4.0</span>
+            </div>
+            <div class="module-knob" data-param="delay_p3">
+              <div class="sm-knob-wrap" id="wrap-delay_p3">
+                <div class="sm-knob-ring" id="ring-delay_p3"></div>
+                <div class="sm-knob-body" id="knob-delay_p3" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">MIX</span>
+              <span class="sm-knob-val" id="val-delay_p3">3.5</span>
+            </div>
+            <div class="module-knob" data-param="delay_p4">
+              <div class="sm-knob-wrap" id="wrap-delay_p4">
+                <div class="sm-knob-ring" id="ring-delay_p4"></div>
+                <div class="sm-knob-body" id="knob-delay_p4" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">TONE</span>
+              <span class="sm-knob-val" id="val-delay_p4">6.0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- REVERB MODULE -->
+        <div class="fx-module" id="mod-reverb">
+          <div class="module-header">
+            <div class="module-title">
+              <span class="module-tag">REV</span>
+              <h4>REVERB (SPRING/STUDIO)</h4>
+            </div>
+            <button class="module-bypass-btn active" data-block="reverb" id="bypass-reverb" title="Toggle Reverb (MIDI CC #36)">
+              <span class="btn-led"></span>
+              <span class="btn-text">ON</span>
+            </button>
+          </div>
+          <div class="module-knobs">
+            <div class="module-knob" data-param="reverb_p1">
+              <div class="sm-knob-wrap" id="wrap-reverb_p1">
+                <div class="sm-knob-ring" id="ring-reverb_p1"></div>
+                <div class="sm-knob-body" id="knob-reverb_p1" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">MIX</span>
+              <span class="sm-knob-val" id="val-reverb_p1">3.0</span>
+            </div>
+            <div class="module-knob" data-param="reverb_p2">
+              <div class="sm-knob-wrap" id="wrap-reverb_p2">
+                <div class="sm-knob-ring" id="ring-reverb_p2"></div>
+                <div class="sm-knob-body" id="knob-reverb_p2" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">DECAY</span>
+              <span class="sm-knob-val" id="val-reverb_p2">5.5</span>
+            </div>
+            <div class="module-knob" data-param="reverb_p3">
+              <div class="sm-knob-wrap" id="wrap-reverb_p3">
+                <div class="sm-knob-ring" id="ring-reverb_p3"></div>
+                <div class="sm-knob-body" id="knob-reverb_p3" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">TONE</span>
+              <span class="sm-knob-val" id="val-reverb_p3">6.0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FX 1 (COMP / EQ / STOMP) MODULE -->
+        <div class="fx-module" id="mod-fx1">
+          <div class="module-header">
+            <div class="module-title">
+              <span class="module-tag">FX 1</span>
+              <h4>FX 1 (COMP / EQ / PITCH)</h4>
+            </div>
+            <button class="module-bypass-btn" data-block="fx1" id="bypass-fx1" title="Toggle FX 1 (MIDI CC #63)">
+              <span class="btn-led"></span>
+              <span class="btn-text">OFF</span>
+            </button>
+          </div>
+          <div class="module-knobs">
+            <div class="module-knob" data-param="fx1_p1">
+              <div class="sm-knob-wrap" id="wrap-fx1_p1">
+                <div class="sm-knob-ring" id="ring-fx1_p1"></div>
+                <div class="sm-knob-body" id="knob-fx1_p1" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">PARAM 1</span>
+              <span class="sm-knob-val" id="val-fx1_p1">5.0</span>
+            </div>
+            <div class="module-knob" data-param="fx1_p2">
+              <div class="sm-knob-wrap" id="wrap-fx1_p2">
+                <div class="sm-knob-ring" id="ring-fx1_p2"></div>
+                <div class="sm-knob-body" id="knob-fx1_p2" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">PARAM 2</span>
+              <span class="sm-knob-val" id="val-fx1_p2">5.0</span>
+            </div>
+            <div class="module-knob" data-param="fx1_p3">
+              <div class="sm-knob-wrap" id="wrap-fx1_p3">
+                <div class="sm-knob-ring" id="ring-fx1_p3"></div>
+                <div class="sm-knob-body" id="knob-fx1_p3" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">LEVEL</span>
+              <span class="sm-knob-val" id="val-fx1_p3">6.0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FX 2 (EQ / FLANGER / FILTER) MODULE -->
+        <div class="fx-module" id="mod-fx2">
+          <div class="module-header">
+            <div class="module-title">
+              <span class="module-tag">FX 2</span>
+              <h4>FX 2 (EQ / MOD / FILTER)</h4>
+            </div>
+            <button class="module-bypass-btn" data-block="fx2" id="bypass-fx2" title="Toggle FX 2 (MIDI CC #86)">
+              <span class="btn-led"></span>
+              <span class="btn-text">OFF</span>
+            </button>
+          </div>
+          <div class="module-knobs">
+            <div class="module-knob" data-param="fx2_p1">
+              <div class="sm-knob-wrap" id="wrap-fx2_p1">
+                <div class="sm-knob-ring" id="ring-fx2_p1"></div>
+                <div class="sm-knob-body" id="knob-fx2_p1" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">PARAM 1</span>
+              <span class="sm-knob-val" id="val-fx2_p1">5.0</span>
+            </div>
+            <div class="module-knob" data-param="fx2_p2">
+              <div class="sm-knob-wrap" id="wrap-fx2_p2">
+                <div class="sm-knob-ring" id="ring-fx2_p2"></div>
+                <div class="sm-knob-body" id="knob-fx2_p2" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">PARAM 2</span>
+              <span class="sm-knob-val" id="val-fx2_p2">5.0</span>
+            </div>
+            <div class="module-knob" data-param="fx2_p3">
+              <div class="sm-knob-wrap" id="wrap-fx2_p3">
+                <div class="sm-knob-ring" id="ring-fx2_p3"></div>
+                <div class="sm-knob-body" id="knob-fx2_p3" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">LEVEL</span>
+              <span class="sm-knob-val" id="val-fx2_p3">6.0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- FX LOOP MODULE -->
+        <div class="fx-module fxloop-mod" id="mod-fxloop">
+          <div class="module-header">
+            <div class="module-title">
+              <span class="module-tag">LOOP</span>
+              <h4>EXTERNAL FX LOOP</h4>
+            </div>
+            <button class="module-bypass-btn" data-block="fxloop" id="bypass-fxloop" title="Toggle FX Loop (MIDI CC #107)">
+              <span class="btn-led"></span>
+              <span class="btn-text">OFF</span>
+            </button>
+          </div>
+          <div class="module-knobs">
+            <div class="module-knob" data-param="fxloop_p3">
+              <div class="sm-knob-wrap" id="wrap-fxloop_p3">
+                <div class="sm-knob-ring" id="ring-fxloop_p3"></div>
+                <div class="sm-knob-body" id="knob-fxloop_p3" tabindex="0"><div class="sm-knob-line"></div></div>
+              </div>
+              <span class="sm-knob-title">MIX</span>
+              <span class="sm-knob-val" id="val-fxloop_p3">5.0</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- 4. BOTTOM FLOOR: LIVE EXPRESSION PEDALS & REAL-TIME MIDI MONITOR -->
+      <section class="board-strip bottom-strip">
+        <!-- Live Expression Pedals -->
+        <div class="pedals-deck">
+          <div class="deck-header">
+            <span class="deck-title">LIVE CONTINUOUS SWEEP / EXPRESSION PEDALS</span>
+            <span class="deck-sub">Drag pedal treadles or click bypass</span>
+          </div>
+
+          <div class="pedals-grid">
+            <!-- WAH PEDAL -->
+            <div class="pedal-card" id="card-wah">
+              <div class="pedal-top">
+                <button class="pedal-toe-btn" id="btn-wah-engage" title="Engage / Bypass Wah (MIDI CC #43)">
+                  <span class="toe-led" id="wah-toe-led"></span>
+                  <span class="toe-title">WAH</span>
+                </button>
+                <span class="pedal-pct" id="readout-wah">0%</span>
+              </div>
+              <div class="pedal-treadle-area" id="treadle-area-wah">
+                <div class="treadle-visual" id="treadle-wah">
+                  <div class="treadle-glow" id="glow-wah"></div>
+                  <div class="treadle-tread"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- VOLUME PEDAL -->
+            <div class="pedal-card active-card" id="card-vol">
+              <div class="pedal-top">
+                <div class="pedal-toe-btn on">
+                  <span class="toe-led on"></span>
+                  <span class="toe-title">VOLUME</span>
+                </div>
+                <span class="pedal-pct" id="readout-vol">80%</span>
+              </div>
+              <div class="pedal-treadle-area" id="treadle-area-vol">
+                <div class="treadle-visual" id="treadle-vol">
+                  <div class="treadle-glow" id="glow-vol"></div>
+                  <div class="treadle-tread"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- MULTI-FX EXP PEDAL -->
+            <div class="pedal-card active-card" id="card-exp">
+              <div class="pedal-top">
+                <div class="pedal-toe-btn on">
+                  <span class="toe-led on"></span>
+                  <span class="toe-title">MULTI-FX EXP</span>
+                </div>
+                <span class="pedal-pct" id="readout-exp">50%</span>
+              </div>
+              <div class="pedal-treadle-area" id="treadle-area-exp">
+                <div class="treadle-visual" id="treadle-exp">
+                  <div class="treadle-glow" id="glow-exp"></div>
+                  <div class="treadle-tread"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-Time MIDI Activity Log -->
+        <div class="midi-monitor-deck">
+          <div class="deck-header">
+            <span class="deck-title">REAL-TIME MIDI MONITOR (TX / RX)</span>
+            <div class="monitor-actions">
+              <button id="btn-sync-all-knobs" class="micro-btn" title="Send all visible knob positions to Eleven Rack">Push All Knobs</button>
+              <button id="btn-clear-log" class="micro-btn">Clear</button>
+            </div>
+          </div>
+          <div class="midi-log" id="midi-log-list">
+            <div class="log-entry info">Live Eleven Rack Controller ready. Turn knobs to tweak in real-time.</div>
+          </div>
+        </div>
+      </section>
+
     </main>
-
-    <!-- Bottom Utility Deck: Expression Pedals, Quick Bank/Rig Matrix & Live MIDI Monitor -->
-    <section class="bottom-deck">
-      <!-- Expression Pedals Card -->
-      <div class="deck-card pedals-card">
-        <div class="card-header">
-          <h3>EXPRESSION PEDALS &amp; CONTINUOUS SWEEP</h3>
-          <span class="card-subtitle">Click WAH toe-switch or button to engage</span>
-        </div>
-        <div class="pedals-row">
-          <!-- Wah Pedal (Lights up proportionally when Wah is engaged!) -->
-          <div class="pedal-unit" id="pedal-wah-unit" title="Wah Expression Pedal (Sweep: MIDI CC #4 | Toggle Engage: MIDI CC #43)">
-            <div class="pedal-header">
-              <div class="pedal-title-wrap">
-                <span class="pedal-power-led" id="wah-pedal-led" title="Click to toggle Wah Engage (MIDI CC #43)"></span>
-                <span class="pedal-title" id="wah-pedal-title">WAH</span>
-              </div>
-            </div>
-            <div class="pedal-body">
-              <input type="range" id="slider-wah" class="pedal-slider" min="0" max="127" value="0" orient="vertical" />
-              <div class="pedal-treadle" id="treadle-wah">
-                <div class="treadle-fill-glow" id="wah-fill-glow"></div>
-                <div class="treadle-toe-led"></div>
-                <div class="treadle-grip"></div>
-                <span class="pedal-val-readout" id="val-wah">0%</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Volume Pedal -->
-          <div class="pedal-unit active-pedal" id="pedal-vol-unit" title="Volume Expression Pedal (Sweep: MIDI CC #7)">
-            <div class="pedal-header">
-              <div class="pedal-title-wrap">
-                <span class="pedal-power-led on"></span>
-                <span class="pedal-title">VOLUME</span>
-              </div>
-            </div>
-            <div class="pedal-body">
-              <input type="range" id="slider-vol" class="pedal-slider" min="0" max="127" value="100" orient="vertical" />
-              <div class="pedal-treadle" id="treadle-vol">
-                <div class="treadle-fill-glow" id="vol-fill-glow"></div>
-                <div class="treadle-grip"></div>
-                <span class="pedal-val-readout" id="val-vol">79%</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Multi-FX Expression -->
-          <div class="pedal-unit active-pedal" id="pedal-exp-unit" title="Multi-FX Expression Pedal (Sweep: MIDI CC #11)">
-            <div class="pedal-header">
-              <div class="pedal-title-wrap">
-                <span class="pedal-power-led on"></span>
-                <span class="pedal-title">MULTI-FX</span>
-              </div>
-            </div>
-            <div class="pedal-body">
-              <input type="range" id="slider-exp" class="pedal-slider" min="0" max="127" value="64" orient="vertical" />
-              <div class="pedal-treadle" id="treadle-exp">
-                <div class="treadle-fill-glow" id="exp-fill-glow"></div>
-                <div class="treadle-grip"></div>
-                <span class="pedal-val-readout" id="val-exp">50%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Rig Bank Switcher Card -->
-      <div class="deck-card rig-browser-card">
-        <div class="card-header">
-          <h3>RIG / PATCH SWITCHER &amp; VIRTUAL RIG BUILDER</h3>
-          <div class="bank-selector-controls">
-            <button id="btn-auto-push-rig" class="mini-toggle active" title="Virtual Rig Cheat Mode: Automatically sends Base Hardware PC + pushes all 10 Block Bypasses & all Knob CCs when switching Rigs or Amps">Auto-Push: ON</button>
-            <label for="quick-bank-letter">Bank:</label>
-            <select id="quick-bank-letter" class="compact-select"></select>
-            <button id="btn-quick-user" class="mini-toggle active" title="User Banks A1-Z4 (Bank Select CC #0 = 0)">User (A–Z)</button>
-            <button id="btn-quick-factory" class="mini-toggle" title="Factory Banks a1-z4 (Bank Select CC #0 = 1)">Factory (a–z)</button>
-          </div>
-        </div>
-        <div class="footswitch-row" id="rig-footswitches">
-          <button class="rig-stomp-btn active" data-slot="0" id="stomp-btn-0">
-            <span class="stomp-led"></span>
-            <span class="stomp-slot" id="stomp-label-0">A1</span>
-            <span class="stomp-rig-title" id="stomp-name-0">BIG BLUE PLEXI</span>
-          </button>
-          <button class="rig-stomp-btn" data-slot="1" id="stomp-btn-1">
-            <span class="stomp-led"></span>
-            <span class="stomp-slot" id="stomp-label-1">A2</span>
-            <span class="stomp-rig-title" id="stomp-name-1">MODERN 800 CRUNCH</span>
-          </button>
-          <button class="rig-stomp-btn" data-slot="2" id="stomp-btn-2">
-            <span class="stomp-led"></span>
-            <span class="stomp-slot" id="stomp-label-2">A3</span>
-            <span class="stomp-rig-title" id="stomp-name-2">BLACKFACE CHIME</span>
-          </button>
-          <button class="rig-stomp-btn" data-slot="3" id="stomp-btn-3">
-            <span class="stomp-led"></span>
-            <span class="stomp-slot" id="stomp-label-3">A4</span>
-            <span class="stomp-rig-title" id="stomp-name-3">TREADPLATE LEAD</span>
-          </button>
-        </div>
-
-        <div class="snapshots-bar">
-          <span class="snap-label" title="Hardware Base Patch (PC) that supplies the underlying DSP Amp/Cab/FX models for this slot">BASE HW:</span>
-          <select id="base-hw-pc-select" class="compact-select" title="Choose which Hardware Rig Slot (PC 0-103) is recalled on the Eleven Rack before pushing your custom knob & bypass overrides">
-          </select>
-          <button class="snap-btn" id="btn-save-preset" title="Save current Virtual Rig (Amp, Cab, FX models, Base HW slot, all Bypasses & Knobs) to library">Save Rig</button>
-          <select id="preset-list-select" class="compact-select">
-            <option value="">-- Load Saved Rig --</option>
-          </select>
-          <button class="snap-btn" id="btn-reset-slot" title="Reset current Rig slot back to default settings">Reset</button>
-          <button class="snap-btn" id="btn-export-json" title="Export all Virtual Rigs, custom Rig names, CC map & snapshots as JSON">Export</button>
-          <button class="snap-btn" id="btn-import-json" title="Import configuration & Virtual Rigs from JSON">Import</button>
-          <input type="file" id="import-file-input" accept=".json" style="display:none" />
-        </div>
-      </div>
-
-      <!-- MIDI Monitor & Custom Test Sender Card -->
-      <div class="deck-card midi-log-card">
-        <div class="card-header">
-          <h3>LIVE BI-DIRECTIONAL MIDI MONITOR</h3>
-          <div class="log-actions">
-            <span class="rx-tx-pill" title="TX = Sent to Eleven Rack, RX = Received from Eleven Rack">TX / RX</span>
-            <button id="btn-clear-log" class="mini-toggle">Clear</button>
-          </div>
-        </div>
-        <div class="midi-log-list" id="midi-log-list">
-          <div class="log-entry info">Ready. Select Eleven Rack in both MIDI OUT and MIDI IN for 2-way parameter tracking.</div>
-        </div>
-        <div class="manual-midi-bar">
-          <span>Test CC:</span>
-          <input type="number" id="manual-cc-num" min="0" max="127" value="25" title="CC Number (0-127)" />
-          <span>Val:</span>
-          <input type="number" id="manual-cc-val" min="0" max="127" value="127" title="CC Value (0-127)" />
-          <button id="btn-send-manual-cc" class="mini-toggle accent">Send CC</button>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- Modal 1: MIDI Guide & Hardware Capabilities -->
-  <div class="modal-backdrop hidden" id="info-modal-backdrop">
-    <div class="modal-window">
-      <div class="modal-header">
-        <h2>Eleven Rack MIDI Architecture &amp; Deep Editing Guide</h2>
-        <button id="btn-close-info-modal" class="modal-close-btn">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div class="guide-grid">
-          <div class="guide-card">
-            <h4>1. Virtual Rig Cheat Mode (Base PC + Full CC Auto-Push)</h4>
-            <p>
-              Standard MIDI 1.0 cannot hot-swap DSP models (Amp, Cab, FX1/FX2 type) via CC alone—it recalls models via <strong>Program Change (PC 0–103)</strong>.
-              To let you build complete custom Rigs on the interface, <strong>Auto-Push Mode</strong> performs a 2-stage MIDI burst whenever you switch Rigs, load a saved Rig, or pick an Amp:
-              <strong>1)</strong> It sends <code>Bank + PC</code> for the slot's <strong>Base HW Patch</strong> to load the underlying Amp/Cab/FX models, and <strong>2)</strong> 85ms later, it automatically blasts all <strong>10 Block Bypasses</strong> and all <strong>Knob Parameter CCs</strong> across every block so the hardware snaps to your exact web interface Rig!
-            </p>
-          </div>
-
-          <div class="guide-card">
-            <h4>2. Page 1 &amp; Page 2 Deep Parameter Editing (Table 12 CCs)</h4>
-            <p>
-              Every multi-parameter block (<strong>AMP, DIST, FX 1, FX 2, MOD, DELAY, REVERB</strong>) now supports <strong>PAGE 1 (Settings 1–6)</strong> and <strong>PAGE 2 (Settings 7–12)</strong> mapped to the official <em>Eleven Rack User Guide Table 12</em> MIDI Continuous Controllers:
-            </p>
-            <ul>
-              <li><strong>Amp Settings 1–10:</strong> CCs <code>14, 15, 16, 17, 21, 10, 113, 3, 85, 24</code></li>
-              <li><strong>Distortion Settings 1–6:</strong> CCs <code>28, 79, 80, 81, 82, 83</code></li>
-              <li><strong>FX 1 Settings 1–9:</strong> CCs <code>20, 42, 60, 77, 117, 118, 119, 5</code></li>
-              <li><strong>FX 2 Settings 1–9:</strong> CCs <code>114, 115, 116, 97, 98, 99, 37, 46</code></li>
-              <li><strong>Modulation Settings 1–7:</strong> CCs <code>62, 52, 53, 54, 57, 51, 56</code></li>
-              <li><strong>Delay Settings 1–8:</strong> CCs <code>71, 72, 73, 86, 87, 34, 48, 49</code></li>
-              <li><strong>Reverb Settings 1–6:</strong> CCs <code>74, 75, 76, 39, 77, 41</code></li>
-            </ul>
-          </div>
-
-          <div class="guide-card">
-            <h4>3. Preset Names on the LCD Screen</h4>
-            <p>
-              Standard MIDI 1.0 (PC/CC) does not transmit ASCII preset names from the Eleven Rack hardware.
-              To give you a clear, prominent readout, the <strong>LCD Header</strong> and <strong>4 Rig Footswitches</strong> come pre-populated with descriptive Rig titles for User (`A1–Z4`) and Factory (`a1–z4`) banks.
-              Click the <strong>Rig Name directly on the LCD screen</strong> at any time to type your own custom Rig name for that slot—it saves automatically to your browser!
-            </p>
-          </div>
-
-          <div class="guide-card">
-            <h4>4. How Two-Way MIDI Sync Works (PUSH vs. LIVE RX)</h4>
-            <p>
-              <strong>Sending (PUSH TO 11R):</strong> Clicking <strong>PUSH TO 11R</strong> transmits all current UI knob positions and effect bypass states to the Eleven Rack so the hardware immediately matches your screen.<br/><br/>
-              <strong>Receiving (MIDI IN):</strong> Standard MIDI cannot request a full state dump on demand, <em>however</em> if you select <strong>Eleven Rack in MIDI IN</strong> as well as MIDI OUT, whenever you turn a physical knob, toggle an effect button, or scroll Rigs on the front panel of your Eleven Rack, the hardware transmits those `CC` and `PC` messages over USB and this web interface updates its knobs, bypass LEDs, and active Rig slot in real time!
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="btn-ok-info-modal" class="top-btn accent">Got It</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal 2: MIDI CC Map & Eleven Rack Reference -->
-  <div class="modal-backdrop hidden" id="cc-modal-backdrop">
-    <div class="modal-window">
-      <div class="modal-header">
-        <h2>Eleven Rack Official Table 12 MIDI CC Mapping</h2>
-        <button id="btn-close-modal" class="modal-close-btn">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p class="modal-intro">
-          Below are the official <strong>Avid Eleven Rack Table 12 MIDI Continuous Controller</strong> numbers. You can verify or customize any CC number to match your hardware's <strong>User Options &rarr; MIDI CC Reference</strong> screen (accessible by holding <em>Edit/Back</em> on the unit).
-        </p>
-
-        <div class="cc-tables-grid" id="cc-config-container">
-          <!-- Populated dynamically by app.js -->
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="btn-reset-default-ccs" class="top-btn">Reset to Official Table 12 Defaults</button>
-        <button id="btn-save-close-modal" class="top-btn accent">Save &amp; Apply</button>
-      </div>
-    </div>
   </div>
 
   <script src="app.js"></script>
